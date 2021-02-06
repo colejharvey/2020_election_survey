@@ -1,0 +1,519 @@
+---
+title: "Data analysis"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(modelsummary)
+library(interactions)
+library(ggplot2)
+
+survey.data <- read.csv("survey data.csv")
+
+survey.data <- survey.data %>% mutate(biden.winner = ifelse(vignette_winning_candidate == "biden", 1, 0))
+
+survey.data <- survey.data %>% filter(party_id_withlean != "Independent") #To exclude true independents if desired
+```
+
+##Overall notes
+
+There is some evidence that falsification leads to greater anger and less satisfaction with democracy than unfair laws do, when we combine all respondents and winner conditions.
+
+Breaking out partisanship and winning conditions leads to a more complex picture: for example, the difference in anger is felt among the *winning* party.
+
+Argument may be that legitimacy costs are primarily incurred among *supporters*, especially in a highly polarized environment
+
+##Summary statistics
+
+All the recoding here is necessary to ensure there are no A) empty factor levels, and B) empty factor level names
+
+For winner treatment. Note any areas of imbalance and add as control variables for RCs.
+
+```{r}
+covariates <- survey.data %>% dplyr::select(biden_rating, biden.winner, vignette_control, vignette_falsify, vignette_laws,  Socioeconomic.Status, ideology, interest_politics, votes_counted_fairly, election_officials_fair, voters_have_choice, trump_rating, Employment.Status, Employment.Status, Ethnicity, Gender.identity, Highest.education.level.completed, Sex, age.x) %>% as_tibble()
+
+covariates <- covariates %>% filter(age.x != "")
+covariates <- covariates %>% filter(Employment.Status != "")
+covariates <- covariates %>% filter(Employment.Status != "DATA EXPIRED")
+covariates <- covariates %>% filter(Sex != "DATA EXPIRED")
+
+covariates <- covariates %>% mutate(Employment.Status = factor(Employment.Status))
+covariates <- covariates %>% mutate(biden_rating = as.numeric(biden_rating))
+covariates <- covariates %>% mutate(trump_rating = as.numeric(trump_rating))
+covariates <- covariates %>% mutate(Ethnicity = factor(Ethnicity))
+covariates <- covariates %>% mutate(Gender.identity = factor(Gender.identity))
+covariates <- covariates %>% mutate(Highest.education.level.completed = factor(Highest.education.level.completed))
+#covariates <- covariates %>% mutate(Nationality = factor(Nationality))
+covariates <- covariates %>% mutate(Sex = factor(Sex))
+covariates <- covariates %>% mutate(Socioeconomic.Status = as.numeric(Socioeconomic.Status))
+#covariates <- covariates %>% mutate(U.S..Political.Affiliation = factor(U.S..Political.Affiliation))
+covariates <- covariates %>% mutate(age.x = factor(age.x))
+
+
+
+
+datasummary_balance(~biden.winner, data=covariates)
+
+```
+
+Balance for laws vs falsify
+
+```{r}
+covariates <- survey.data %>% dplyr::select(biden_rating, biden.winner, vignette_control, vignette_falsify, vignette_laws,  Socioeconomic.Status, ideology, interest_politics, votes_counted_fairly, election_officials_fair, voters_have_choice, trump_rating, Employment.Status, Employment.Status, Ethnicity, Gender.identity, Highest.education.level.completed, Sex, age.x) %>% as_tibble()
+
+covariates <- covariates %>% filter(vignette_control == 0)
+
+covariates <- covariates %>% filter(age.x != "")
+covariates <- covariates %>% filter(Employment.Status != "")
+covariates <- covariates %>% filter(Employment.Status != "DATA EXPIRED")
+covariates <- covariates %>% filter(Sex != "DATA EXPIRED")
+
+covariates <- covariates %>% mutate(Employment.Status = factor(Employment.Status))
+covariates <- covariates %>% mutate(biden_rating = as.numeric(biden_rating))
+covariates <- covariates %>% mutate(trump_rating = as.numeric(trump_rating))
+covariates <- covariates %>% mutate(Ethnicity = factor(Ethnicity))
+covariates <- covariates %>% mutate(Gender.identity = factor(Gender.identity))
+covariates <- covariates %>% mutate(Highest.education.level.completed = factor(Highest.education.level.completed))
+#covariates <- covariates %>% mutate(Nationality = factor(Nationality))
+covariates <- covariates %>% mutate(Sex = factor(Sex))
+covariates <- covariates %>% mutate(Socioeconomic.Status = as.numeric(Socioeconomic.Status))
+#covariates <- covariates %>% mutate(U.S..Political.Affiliation = factor(U.S..Political.Affiliation))
+covariates <- covariates %>% mutate(age.x = factor(age.x))
+
+
+
+
+datasummary_balance(~vignette_falsify, data=covariates)
+```
+
+
+
+Plots
+
+Election integrity
+
+```{r}
+ggstatsplot::ggbetweenstats(
+  data =survey.data,
+  x=party_id_withlean, 
+  y=votes_counted_fairly)
+```
+
+```{r}
+ggstatsplot::ggbetweenstats(
+  data =survey.data,
+  x=party_id_withlean, 
+  y=election_officials_fair)
+```
+
+```{r}
+ggstatsplot::ggbetweenstats(
+  data =survey.data,
+  x=party_id_withlean, 
+  y=voters_have_choice)
+```
+
+
+
+```{r}
+p1 <- ggplot(data = survey.data, mapping = aes(x = jitter(biden.winner), y = jitter(anger.index))) +
+  geom_point(aes(color = party_id_withlean))
+p1
+```
+
+```{r}
+model.anger.2treats <- lm(anger.index ~ biden.winner*trump_rating*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.anger.2treats)
+
+interact_plot(model.anger.2treats, pred = vignette_laws, modx = biden.winner, mod2 = trump_rating, interval = T)
+
+interact_plot(model.anger.2treats, pred = vignette_laws, mod2 = biden.winner, modx = trump_rating, interval = T, modx.values = c(0, 4.1, 10))
+
+
+model.anger.falsify <- lm(anger.index ~ biden.winner*party_id_withlean*vignette_falsify  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.anger.falsify)
+
+interact_plot(model.anger.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.anger.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.anger.laws <- lm(anger.index ~ biden.winner*party_id_withlean*vignette_laws  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.anger.laws)
+
+interact_plot(model.anger.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.anger.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+```
+Moral of the above plots:
+
+Comparing the two treatments
+  Partisans on both sides are equally (and very) angry if the opposing candidate wins using falsification    or fraud. This means no real difference in legitimacy costs from that perspective.
+
+  Both parties' supporters are significantly angrier if their candidate wins by falsification than by unfair laws.
+
+Falsification vs. control
+
+Both parties are significantly angrier if their candidate wins by falsification than without manipulation.  Both parties are also significantly angrier if the other candidate wins by fraud than without manipulation, but this effect is very small for Democrats.
+
+Laws vs. control
+
+Same as above.
+
+
+##Group identity
+
+```{r}
+model.identity.2treats <- lm(identity.index ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.identity.2treats)
+
+interact_plot(model.identity.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.identity.2treats, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.identity.falsify <- lm(identity.index ~ biden.winner*party_id_withlean*vignette_falsify + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.identity.falsify)
+
+interact_plot(model.identity.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.identity.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+
+model.identity.laws <- lm(identity.index ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.identity.laws)
+
+interact_plot(model.identity.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.identity.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+```
+
+
+Identity effects are conditional on who wins, not manipulation.
+
+##Group efficacy
+
+```{r}
+model.efficacy.2treats <- lm(efficacy.index ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.efficacy.2treats)
+
+interact_plot(model.efficacy.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.efficacy.2treats, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.efficacy.falsify <- lm(efficacy.index ~ biden.winner*party_id_withlean*vignette_falsify + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.efficacy.falsify)
+
+interact_plot(model.efficacy.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.efficacy.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.efficacy.laws <- lm(efficacy.index ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.efficacy.laws)
+
+interact_plot(model.efficacy.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.efficacy.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+```
+
+Comparing two treatments:
+
+Democrats are significantly more efficacious when Biden wins by falsification than when Trump wins by falsification, but see no difference for laws. Republicans see no significant difference between either treatment and either winning candidate.
+
+Falsification vs. control
+
+Democrats feel more efficacious when Biden wins by falsification than when Trump wins by falsification; these are not significantly different from control, however. Republicans feel no difference.
+
+Laws vs. control
+
+No differences for either party
+##Morals
+
+```{r}
+survey.data <- survey.data %>% mutate(moral.reaction = overall.reaction*moral.index)
+
+model.moral.2treats <- lm(moral.reaction ~ biden.winner*party_id_withlean + Employment.Status_Full.Time + Employment.Status_Part.Time*vignette_laws, data = survey.data %>% filter(vignette_control == 0))
+summary(model.moral.2treats)
+
+interact_plot(model.moral.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.moral.2treats, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+
+model.moral.falsify <- lm(moral.reaction ~ biden.winner*party_id_withlean*vignette_falsify + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.moral.falsify)
+
+interact_plot(model.moral.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.moral.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+
+model.moral.laws <- lm(moral.reaction ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.moral.laws)
+
+interact_plot(model.moral.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.moral.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+```
+
+Comparing two treatments:
+
+No difference within parties in terms of moral reaction across treatment types
+However there is a significant difference across parties
+
+Falsification vs control
+
+Republicans have significantly smaller moral reaction when Trump wins via falsification than under control. Dems have no change across treatment and control when Trump wins.
+
+Likewise Democrats see a big drop in moral reaction when Biden wins via falsification compared to control.
+Republicans see a small, marginally sig drop in moral reaction when Biden wins via falsification compared to control.
+
+Laws vs. control
+
+Same as above.
+
+
+Protest
+
+```{r}
+model.demon.2treats <- lm(demonstration ~ biden.winner*trump_rating*vignette_laws  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.demon.2treats)
+
+interact_plot(model.demon.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.demon.2treats, pred = vignette_laws, mod2 = biden.winner, modx = trump_rating, interval = T, modx.values = c(0, 4.1, 10))
+
+
+model.demon.falsify <- lm(demonstration ~ biden.winner*party_id_withlean*vignette_falsify  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.demon.falsify)
+
+interact_plot(model.demon.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+
+interact_plot(model.demon.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.demon.laws <- lm(demonstration ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.demon.laws)
+
+interact_plot(model.demon.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.demon.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+```
+
+Comparing 2 treatments:
+
+No difference within parties across treatments, though there are differences across parties
+
+Falsification vs. control
+
+R's not more likely to protest if Trump wins via falsification than in control.
+Both Rs and Ds equally more likely to protest a falsified Biden win vs. control
+
+Laws vs. control
+
+Same as above.
+
+
+Collective action
+
+```{r}
+model.ca.2treats <- lm(ca.index ~ biden.winner*party_id_withlean*vignette_laws  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.ca.2treats)
+
+interact_plot(model.ca.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.ca.2treats, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.ca.falsify <- lm(ca.index ~ biden.winner*party_id_withlean*vignette_falsify  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.ca.falsify)
+
+interact_plot(model.ca.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.ca.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.ca.laws <- lm(ca.index ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.ca.laws)
+
+interact_plot(model.ca.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.ca.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+```
+
+Comparing 2 treatments:
+
+No change within parties across the two treatments.
+
+Falsification vs. control
+
+Collective action signficantly more likely for both parties in treatment vs. control condition
+
+Laws vs control
+
+Same as above.
+
+###Party thermometer
+
+```{r}
+model.rt.2treats <- lm(thermometer.republican ~ biden.winner*trump_rating*vignette_laws  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.rt.2treats)
+
+interact_plot(model.rt.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.rt.2treats, pred = vignette_laws, mod2 = biden.winner, modx = trump_rating, interval = T, modx.values = c(0, 4.1, 10))
+
+
+model.rt.falsify <- lm(thermometer.republican ~ biden.winner*party_id_withlean*vignette_falsify  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.rt.falsify)
+
+interact_plot(model.rt.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.rt.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.rt.laws <- lm(thermometer.republican ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.rt.laws)
+
+interact_plot(model.rt.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.rt.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+```
+Republican thermometer goes down for Rs if Trump wins through falsification or through unfair laws. No change for Ds across all conditions
+
+```{r}
+model.dt.2treats <- lm(thermometer.democrat ~ biden.winner*trump_rating*vignette_laws  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.dt.2treats)
+
+interact_plot(model.dt.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.dt.2treats, pred = vignette_laws, mod2 = biden.winner, modx = trump_rating, interval = T, modx.values = c(0, 4.1, 10))
+
+
+model.dt.falsify <- lm(thermometer.democrat ~ biden.winner*party_id_withlean*vignette_falsify  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.dt.falsify)
+
+interact_plot(model.dt.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.dt.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.dt.laws <- lm(thermometer.democrat ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.dt.laws)
+
+interact_plot(model.dt.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.dt.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+```
+
+No major changes for Dems or Rs.
+
+
+###Satisfaction with democracy
+
+```{r}
+model.sat.2treats <- lm(democracy.satisfied ~ biden.winner*trump_rating*vignette_laws  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_control == 0))
+summary(model.sat.2treats)
+
+interact_plot(model.sat.2treats, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.sat.2treats, pred = vignette_laws, mod2 = biden.winner, modx = trump_rating, interval = T, modx.values = c(0, 4.1, 10))
+
+
+model.sat.falsify <- lm(democracy.satisfied ~ biden.winner*party_id_withlean*vignette_falsify  + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_laws == 0))
+summary(model.sat.falsify)
+
+interact_plot(model.sat.falsify, pred = vignette_falsify, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.sat.falsify, pred = vignette_falsify, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+model.sat.laws <- lm(democracy.satisfied ~ biden.winner*party_id_withlean*vignette_laws + Employment.Status_Full.Time + Employment.Status_Part.Time, data = survey.data %>% filter(vignette_falsify == 0))
+summary(model.sat.laws)
+
+interact_plot(model.sat.laws, pred = vignette_laws, modx = biden.winner, mod2 = party_id_withlean, interval = T)
+interact_plot(model.sat.laws, pred = vignette_laws, mod2 = biden.winner, modx = party_id_withlean, interval = T)
+
+
+```
+
+Comparing 2 treatments:
+No significant difference within parties
+
+Falsification vs control
+
+Falsification reduces satisifcation with democracy in all conditions
+
+Unfair laws vs control
+
+Reduces satisfication with democracy in all conditions ecept Democrats in Trump victory
+
+
+###Ggstatsplot versions
+
+```{r}
+set.seed(123)
+
+# function call
+ggstatsplot::ggbetweenstats(
+  data = survey.data,
+  x = treatment.path,
+  y = anger.index
+)
+```
+
+
+
+```{r}
+set.seed(123)
+
+# function call
+ggstatsplot::ggbetweenstats(
+  data = survey.data,
+  x = treatment.path,
+  y = identity.index
+)
+```
+
+
+
+
+
+```{r}
+set.seed(123)
+
+# function call
+ggstatsplot::ggbetweenstats(
+  data = survey.data,
+  x = treatment.path,
+  y = efficacy.index
+)
+```
+
+
+
+```{r}
+set.seed(123)
+
+# function call
+ggstatsplot::ggbetweenstats(
+  data = survey.data,
+  x = treatment.path,
+  y = moral.reaction
+)
+```
+
+```{r}
+set.seed(123)
+
+# function call
+ggstatsplot::ggbetweenstats(
+  data = survey.data,
+  x = treatment.path,
+  y = democracy.satisfied
+)
+```
+
+

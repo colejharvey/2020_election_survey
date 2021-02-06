@@ -1,0 +1,196 @@
+---
+title           : "Preregistration for experiment on social-psychological reactions to election manipulation (data collected 10/21/2020)"
+shorttitle      : "2020 election manipulation study preregistration"
+date            : "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
+
+author: 
+  - name        : Cole J. Harvey
+    affiliation : 1
+
+
+affiliation:
+  - id          : 1
+    institution : Oklahoma State University
+  - 
+
+output: prereg::vantveer_prereg
+---
+
+# Hypotheses
+
+## Predictions
+<!-- Describe the (numbered) hypotheses in terms of directional relationships between your (manipulated or measured) variables. For interaction effects, describe the expected shape of the interactions. If you are manipulating a variable, make predictions for successful check variables or explain why no manipulation check is included. -->
+
+There are four treatment conditions and two control condition in the study, based on the existence and type of election manipulation presented in the vignette, and the winning candidate. The manipulation treatments are "laws in a swing state made it harder for X's supporters to vote," and "officials in a swing state falsified the results so that X won there." The control condition states that candidate X won the overall election due to a close victory in a swing state, with no allegations of wrongdoing. The winning candidate is described either as Democrat Joe Biden or Republican Donald Trump.
+
+Seven dependent variables are measured: satisfaction with democracy, feeling thermometer ratings of the two major parties, emotions, moral responses, group identification with the respondent's political party, and the respondent's belief in that group's efficacy. 
+
+The following hypotheses will be tested.
+
+*Anger*
+
+1. Supporters of the losing candidate will report higher levels of anger in the election manipulation conditions than in the control condition.
+
+2. Supporters of the losing candidate will report higher levels of anger in the falsification treatment than in the unfair laws treatment.
+
+3. Supporters of the winning candidate will not report significantly higher levels of anger in the treatment conditions than in the control condition.
+
+*Moral response*
+
+4. Supporters of the losing candidate will report higher levels of moral indignation in the election manipulation conditions than in the control condition.
+
+5. Supporters of the losing candidate will report higher levels of moral indignation in the falsification treatment than in the unfair laws treatment.
+
+6. Supporters of the winning candidate will not report significantly higher levels of moral indignation in the treatment conditions than in the control condition.
+
+*Group efficacy*
+
+7. Supporters of the losing candidate will report lower levels of group efficacy in the election manipulation conditions than in the control condition.
+
+8. Supporters of the losing candidate will report lower levels of group efficacy in the falsification treatment than in the unfair laws treatment.
+
+9. Supporters of the winning candidate will not report significantly lower levels of group efficacy in the treatment conditions than in the control condition.
+
+*Group identification*
+
+7. Supporters of the losing candidate will report lower levels of group identification in the election manipulation conditions than in the control condition.
+
+8. Supporters of the losing candidate will report lower levels of group identification in the falsification treatment than in the unfair laws treatment.
+
+9. Supporters of the winning candidate will not report significantly lower levels of group identification in the treatment conditions than in the control condition.
+
+*Satisfaction with democracy*
+
+10) Supporters of the losing candidate will report lower levels of satisfaction with democracy than supporters of the winning candidate.
+
+11) Supporters of the losing candidate will report lower levels of satisfaction with democracy in the treatment conditions than in the control condition.
+
+12) Supporters of the losing candidate will report lower levels of satisfaction with democracy in the unfair laws condition than in the falsification condition.
+
+*Feeling thermometers*
+
+13) Supporters of the losing party will report lower ratings on the opposing party feeling thermometer than will supporters of the winning party.
+
+14) Supporters of the losing party will report lower ratings on the opposing party feeling thermometer in the treatment conditions than in the control condition.
+
+15) Supporters of the losing party will report lower ratings on the opposing party feeling thermometer in the falsification condition than in the unfair laws condition.
+
+*Partisanship*
+
+16) Strong partisans will exhibit greater anger, moral conviction, and group efficacy across treatment and control conditions than weak partisans.
+
+17) Weak partisans will exhibit larger reductions in group identification across treatment and control conditions than strong partisans
+
+## Rationale (optional)
+<!-- A figure or table may be helpful to describe complex interactions; this facilitates correct specification of the ordering of all group means. For original research, add rationales or theoretical frameworks for why a certain hypothesis is tested. If multiple predictions can be made for the same IV-DV combination, describe what outcome would be predicted by which theory. -->
+
+Electoral manipulation remains a prominent tool of ruling parties in authoritarian regimes and new democracies. Even in more consolidated democracies, including the United States, there are concerns about gerrymandering, multiple voting, voter suppression, and more (Norris, 2014); expert surveys rank the United States relatively low compared to other democracies in terms of election quality (Norris and Gr¨omping, 2019). While there
+has been some research on how citizens evaluate whether or not elections are fair (Birch, 2010; Cantu and Garcia-Ponce, 2015), there has been little study of what about tainted elections—if anything—motivates people to join in costly and potentially risky protest. Despite this lack of detailed evidence, the risk of popular backlash against rigged elections is often cited as the most important deterrent against manipulation by governing parties, especially in the formal modeling literature (Magaloni, 2010; Fearon, 2011; Chernykh and Svolik, 2015).
+
+I have begun to address this puzzle by employing insights drawn from social psychology. Four social-psychological factors have been shown to influence individuals’ participation in collective action (van Zomeren, 2013). These are strength of identification with a targeted group (Bliuc et al., 2007), belief that action as a group will be effective in creating a remedy (Hornsey et al., 2006), emotions (Valentino et al., 2011; Groenendyk and Banks, 2014), and an intuition that their moral principles have been violated (van Zomeren
+et al., 2012). This study uses a survey experiment to investigate how exposure to election manipulation affects these four triggers differently. Specifically, I expect that that the use of state power--either in the form of unfair laws or falsification--will make people less likely to identify with the disfavored group and make members of that group feel less efficacious. These previously un-identified negative effects, if shown, will help explain why post-election protest is relatively rare.
+
+
+
+
+# Methods
+
+## Design
+<!-- List, based on your hypotheses from the hypotheses section A, independent variables with all their levels
+    a) whether they are within- or between-participant
+    b) the relationship between them (e.g., orthogonal, nested).
+
+List dependent variables, or variables in a correlational design and variables acting as covariates or moderators. -->
+
+Variables are measured for each respondent using a randomized survey-experimental design. Each respondent has a 50-50 likelihood of seeing Republican Donald Trump or Democrat Joe Biden as the winning candidate. Each respondent has 1/3 chance of being exposed to either the control condition (no manipulation), the unfair laws treatment, or the falsification treatment. Hypotheses will be evaluated across treatment and control conditions.
+
+Variables are measued using standard scales in the social-psychology literature. 
+
+
+## Planned sample
+<!-- If applicable, describe pre-selection rules. Indicate where, from whom and how the data will be collected. Justify planned sample size. If applicable, include or refer to a file related to your power analysis here (e.g., a protocol of power analyses from G*Power, a script, a screenshot, etc.). Describe data collection termination rule. -->
+
+Data will be collected using the online survey panel platform Prolific. 775 Republicans and 775 Democrats will be recruited to take the survey experiment.
+
+
+## Exclusion criteria
+<!-- Describe anticipated specific data exclusion criteria. For example:
+    a) missing, erroneous, or overly consistent responses;
+    b) failing check-tests or suspicion probes;
+    c) demographic exclusions;
+    d) data-based outlier criteria;
+    e) method-based outlier criteria (e.g. too short or long response times). -->
+
+The survey includes a manipulation check (factual recall of the vignette they were exposed to). The analysis will be run using all observations, and then separately for only those respondents who correctly recall the treatment.
+
+
+## Procedure
+<!-- Describe all manipulations, measures, materials and procedures including the order of presentation and the method of randomization and blinding (e.g., single or double blind), as in a published Methods section. -->
+
+<!-- Optional: Set fail-safe levels of exclusion at which the whole study needs to be stopped, altered, and restarted. You may pre-determine what proportion of excluded participants will cause the study to be stopped and restarted. If applicable, you can refer to any files related to your methods and procedure here (e.g., a paper describing a scale you are using, experimenter instructions, etc.) -->
+
+Respondents are randomly assigned to a treatment condition via the survey platform Qualtrics. Respondents are not aware of the other treatment/control conditions.
+
+All respondents view a set of questions asking their political affiliation, ideological self-placement, interest in politics, and whether or not they voted in the 2016 election. Respondents are then randomized using Qualtrics into one of the treatment/control conditions, and presented with the appropriate vignette.
+
+Respondents are then asked their emotional reaction to the vignette, to asses the vignette on a negative-positive scale, and then to describe whether this reaction is rooted in their morality. They are then asked a series of questions about how closely they identify with their political party, and how effective they believe the party is as a group. Finally, they are asked to rate the parties on a feeling thermometer, rate their satisfaction with democracy in the US, and presented with a factual recall manipulation check.
+
+# Analysis plan
+
+## Confirmatory analyses 
+<!-- Describe the analyses that will test the predictions from the hypotheses section A. Include: 
+    a) the relevant variables and how they are calculated
+    b) the statistical technique
+    c) each variable’s role in the technique (e.g., IV, DV, moderator, mediator, covariate)
+    d) rationale for each covariate used, if any.
+
+If using techniques other than null hypothesis testing (for example, Bayesian statistics), describe your criteria and inputs toward making an evidential conclusion, including prior values or distributions. -->
+*Dependent variables*
+
+Anger: An index of respondents' 3-point evaluation of their feeling of 'outrage' and 'anger' (other emotions are also captured).
+
+Morality: Respondents rate the hypothetical election outcome on a five-point scale from 'extremely negative' to 'extremely positive.' They then evaluate how much their reaction is a reflection of core moral beliefs and fundamental feelings of right and wrong (3-point scales). These latter two responses are then indexed together.
+
+Group efficacy: An index of four five-point scale responses. These are: [Respondent's party] can successfully stand up for their rights, 'together we can improve electoral fairness,' 'together we will be able to change this situation, '[Respondent's party] can really influence government decisions.'
+
+Group identity: An index of four five-point scale responses. These are: How important is being a [respondent's party] to you? How well does the term [respondent's party] describe you? When talking about [respondent's party] how often do you use 'we' instead of 'they'? To what extent do you think of yourself as a [respondent's party]?
+
+Partisan evaluations make use of a standard feeling thermometer question.
+
+Satisfaction with democracy is measured on a ten-point scale.
+
+*Explanatory variables*
+
+Binary indicators of treatment condition.
+
+*Covariates*
+
+Collected via Prolific profile: Ethncity, gender, highest level of education, current US state of residence, US political affiliation, socioeconomic status (10-point scale)
+
+Collected via survey instrument: interest in politics, self-reported vote history for 2016, age, ideology (extremely liberal to extremely conservative)
+
+Covariates will primarily be used for balance checks, but exploratory subgroup analysis will also likely be conducted. If randomization does not achieve balance on substantively important dimensions (e.g. education), such covariates may be used as controls.
+
+*Statistical analysis*
+
+Data will be analysed using standard OLS, with the typical p < .05 threshold for statistical significance.
+
+
+## Existing data
+<!-- Has data collection begun for this project? -->
+
+Data collection has not begun.
+
+<!-- **Data collection is underway or complete but I have not yet looked at the data.** 
+
+**Data collection is underway or complete and I have looked at the data.** -->
+
+
+
+
+## 
+\vspace{-2pc}
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{-1in}
+\setlength{\parskip}{8pt}
+\noindent

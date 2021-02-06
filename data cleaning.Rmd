@@ -1,0 +1,411 @@
+---
+title: "Data cleaning"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(fastDummies)
+
+dems.data <- read.csv("prolific demographics democrats.csv")
+reps.data <- read.csv("prolific demographics republicans.csv")
+survey.data <- read.csv("Survey of election attitudes (Final)_October 22, 2020_06.02.csv")
+```
+
+
+Removing rows for people who did not complete the survey / previews
+
+```{r}
+dems.data <- dems.data %>% filter(status != "RETURNED")
+dems.data <- dems.data %>% filter(status != "TIMED-OUT")
+
+reps.data <- reps.data %>% filter(status != "RETURNED")
+reps.data <- reps.data %>% filter(status != "TIMED-OUT")
+
+prolific.data <- bind_rows(dems.data, reps.data)
+
+survey.data <- survey.data %>% filter(Status == "IP Address")
+
+rm(dems.data, reps.data)
+
+survey.data <- left_join(survey.data, prolific.data, by = "participant_id")
+```
+
+
+##Gathering DVs together
+
+Problem here--text strings / factors are coding as numbers. Need to make sure this is consistent.
+
+Emotions:
+
+```{r}
+survey.data <- survey.data %>% mutate(disgust = ifelse(is.na(Q34_1)==FALSE, as.character(Q34_1), 
+                                                       ifelse(is.na(Q84_1)==FALSE, as.character(Q84_1), 
+                                                              ifelse(is.na(Q106_1)==FALSE, as.character(Q106_1),
+                                                                     ifelse(is.na(Q107_1)==FALSE, as.character(Q107_1),
+                                                                            ifelse(is.na(Q119_1)==FALSE, as.character(Q119_1), as.character(Q120_1)))))))
+
+##Add here: a line of ifelse commands that turn text strings into 1, 2, 3...
+
+survey.data <- survey.data %>% mutate(pride = ifelse(is.na(Q34_2)==FALSE, as.character(Q34_2), 
+                                                       ifelse(is.na(Q84_2)==FALSE, as.character(Q84_2), 
+                                                              ifelse(is.na(Q106_2)==FALSE, as.character(Q106_2),
+                                                                     ifelse(is.na(Q107_2)==FALSE, as.character(Q107_2),
+                                                                            ifelse(is.na(Q119_2)==FALSE, as.character(Q119_2), as.character(Q120_2)))))))
+
+survey.data <- survey.data %>% mutate(outrage = ifelse(is.na(Q34_3)==FALSE, as.character(Q34_3), 
+                                                       ifelse(is.na(Q84_3)==FALSE, as.character(Q84_3), 
+                                                              ifelse(is.na(Q106_3)==FALSE, as.character(Q106_3),
+                                                                     ifelse(is.na(Q107_3)==FALSE, as.character(Q107_3),
+                                                                            ifelse(is.na(Q119_3)==FALSE, as.character(Q119_3), as.character(Q120_3)))))))
+
+
+survey.data <- survey.data %>% mutate(nervous = ifelse(is.na(Q34_4)==FALSE, as.character(Q34_4), 
+                                                       ifelse(is.na(Q84_4)==FALSE, as.character(Q84_4), 
+                                                              ifelse(is.na(Q106_4)==FALSE, as.character(Q106_4),
+                                                                     ifelse(is.na(Q107_4)==FALSE, as.character(Q107_4),
+                                                                            ifelse(is.na(Q119_4)==FALSE, as.character(Q119_4), as.character(Q120_4)))))))
+
+
+survey.data <- survey.data %>% mutate(anger = ifelse(is.na(Q34_5)==FALSE, as.character(Q34_5), 
+                                                       ifelse(is.na(Q84_5)==FALSE, as.character(Q84_5), 
+                                                              ifelse(is.na(Q106_5)==FALSE, as.character(Q106_5),
+                                                                     ifelse(is.na(Q107_5)==FALSE, as.character(Q107_5),
+                                                                            ifelse(is.na(Q119_5)==FALSE, as.character(Q119_5), as.character(Q120_5)))))))
+
+survey.data <- survey.data %>% mutate(fear = ifelse(is.na(Q34_6)==FALSE, Q34_6, 
+                                                       ifelse(is.na(Q84_6)==FALSE, Q84_6, 
+                                                              ifelse(is.na(Q106_6)==FALSE, Q106_6,
+                                                                     ifelse(is.na(Q107_6)==FALSE, Q107_6,
+                                                                            ifelse(is.na(Q119_6)==FALSE, Q119_6, Q120_6))))))
+
+survey.data <- survey.data %>% mutate(hope = ifelse(is.na(Q34_7)==FALSE, as.character(Q34_7), 
+                                                       ifelse(is.na(Q84_7)==FALSE, as.character(Q84_7), 
+                                                              ifelse(is.na(Q106_7)==FALSE, as.character(Q106_7),
+                                                                     ifelse(is.na(Q107_7)==FALSE, as.character(Q107_7),
+                                                                            ifelse(is.na(Q119_7)==FALSE, as.character(Q119_7), as.character(Q120_7)))))))
+
+survey.data <- survey.data %>% mutate(happiness = ifelse(is.na(Q34_8)==FALSE, as.character(Q34_8), 
+                                                       ifelse(is.na(Q84_8)==FALSE, as.character(Q84_8), 
+                                                              ifelse(is.na(Q106_8)==FALSE, as.character(Q106_8),
+                                                                     ifelse(is.na(Q107_8)==FALSE, as.character(Q107_8),
+                                                                            ifelse(is.na(Q119_8)==FALSE, as.character(Q119_8), as.character(Q120_8)))))))
+```
+
+Overall reaction and morals:
+
+```{r}
+survey.data <- survey.data %>% mutate(overall.reaction = ifelse(is.na(Q35)==FALSE, as.character(Q35), 
+                                                                ifelse(is.na(Q108)==FALSE, as.character(Q108), as.character(Q121))))
+
+survey.data <- survey.data %>% mutate(moral.convict = ifelse(is.na(Q36)==FALSE, as.character(Q36),
+                                                                ifelse(is.na(Q109)==FALSE, as.character(Q109), as.character(Q122))))
+
+survey.data <- survey.data %>% mutate(right.wrong = ifelse(is.na(Q37)==FALSE, as.character(Q37), 
+                                                                ifelse(is.na(Q110)==FALSE, as.character(Q110), as.character(Q123))))
+```
+
+Efficacy:
+
+```{r}
+survey.data <- survey.data %>% mutate(standup.rights = ifelse(is.na(Q38_1) == FALSE, as.character(Q38_1),
+                                                              ifelse(is.na(Q111_1)==FALSE, as.character(Q111_1), as.character(Q124_1))))
+
+survey.data <- survey.data %>% mutate(improve.fairness = ifelse(is.na(Q38_2) == FALSE, as.character(Q38_2),
+                                                              ifelse(is.na(Q111_2)==FALSE, as.character(Q111_2), as.character(Q124_2))))
+
+survey.data <- survey.data %>% mutate(change.together = ifelse(is.na(Q38_3) == FALSE, as.character(Q38_3),
+                                                              ifelse(is.na(Q111_3)==FALSE, as.character(Q111_3), as.character(Q124_3))))
+
+survey.data <- survey.data %>% mutate(group.influence = ifelse(is.na(Q38_4) == FALSE, as.character(Q38_4),
+                                                              ifelse(is.na(Q111_4)==FALSE, as.character(Q111_4), as.character(Q124_4))))
+```
+
+Group identity:
+
+```{r}
+survey.data <- survey.data %>% mutate(group.important = ifelse(is.na(Q39) == FALSE, as.character(Q39),
+                                                              ifelse(is.na(Q112)==FALSE, as.character(Q112), as.character(Q125))))
+
+survey.data <- survey.data %>% mutate(group.describe = ifelse(is.na(Q40) == FALSE, as.character(Q40),
+                                                              ifelse(is.na(Q113)==FALSE, as.character(Q113), as.character(Q126))))
+
+survey.data <- survey.data %>% mutate(group.we = ifelse(is.na(Q41) == FALSE, as.character(Q41),
+                                                              ifelse(is.na(Q114)==FALSE, as.character(Q114), as.character(Q127))))
+
+survey.data <- survey.data %>% mutate(group.think = ifelse(is.na(Q42) == FALSE, as.character(Q42),
+                                                              ifelse(is.na(Q115)==FALSE, as.character(Q115), as.character(Q128))))
+```
+
+Collective action:
+
+```{r}
+survey.data <- survey.data %>% mutate(demonstration = ifelse(is.na(Q43_1)==FALSE, as.character(Q43_1), 
+                                                             ifelse(is.na(Q85_1)==FALSE, as.character(Q85_1), 
+                                                                    ifelse(is.na(Q116_1)==FALSE, as.character(Q116_1),
+                                                                           ifelse(is.na(Q117_1)==FALSE, as.character(Q117_1),
+                                                                                  ifelse(is.na(Q129_1)==FALSE, as.character(Q129_1), as.character(Q130_1)))))))
+
+
+survey.data <- survey.data %>% mutate(petition = ifelse(is.na(Q43_2)==FALSE, as.character(Q43_2), 
+                                                             ifelse(is.na(Q85_2)==FALSE, as.character(Q85_2), 
+                                                                    ifelse(is.na(Q116_2)==FALSE, as.character(Q116_2),
+                                                                           ifelse(is.na(Q117_2)==FALSE, as.character(Q117_2),
+                                                                                  ifelse(is.na(Q129_2)==FALSE, as.character(Q129_2), as.character(Q130_2)))))))
+
+survey.data <- survey.data %>% mutate(donate.party = ifelse(is.na(Q43_3)==FALSE, as.character(Q43_3), 
+                                                             ifelse(is.na(Q85_3)==FALSE, as.character(Q85_3), 
+                                                                    ifelse(is.na(Q116_3)==FALSE, as.character(Q116_3),
+                                                                           ifelse(is.na(Q117_3)==FALSE, as.character(Q117_3),
+                                                                                  ifelse(is.na(Q129_3)==FALSE, as.character(Q129_3), as.character(Q130_3)))))))
+
+survey.data <- survey.data %>% mutate(donate.ngo = ifelse(is.na(Q43_4)==FALSE, as.character(Q43_4), 
+                                                             ifelse(is.na(Q85_4)==FALSE, as.character(Q85_4), 
+                                                                    ifelse(is.na(Q116_4)==FALSE, as.character(Q116_4),
+                                                                           ifelse(is.na(Q117_4)==FALSE, as.character(Q117_4),
+                                                                                  ifelse(is.na(Q129_4)==FALSE, as.character(Q129_4), as.character(Q130_4)))))))
+
+survey.data <- survey.data %>% mutate(group.do.something = ifelse(is.na(Q43_5)==FALSE, as.character(Q43_5), 
+                                                             ifelse(is.na(Q85_5)==FALSE, as.character(Q85_5), 
+                                                                    ifelse(is.na(Q116_5)==FALSE, as.character(Q116_5),
+                                                                           ifelse(is.na(Q117_5)==FALSE, as.character(Q117_5),
+                                                                                  ifelse(is.na(Q129_5)==FALSE, as.character(Q129_5), as.character(Q130_5)))))))
+```
+
+
+Recoding responses
+
+```{r}
+##Party id
+
+survey.data <- survey.data %>% mutate(party_id_withlean = ifelse(party_id == "Democrat" | party_id_lean == "Democrats", "Democrat", ifelse(party_id == "Republican" | party_id_lean == "Republicans", "Republican", "Independent")))
+
+##Ideology
+
+survey.data <- survey.data %>% mutate(ideology = ifelse(is.na(ideology)==TRUE, NA, ifelse(ideology == "Extremely liberal", -3, 
+                                                        ifelse(ideology == "Liberal", -2, 
+                                                               ifelse(ideology == "Slightly liberal", -1,
+                                                                      ifelse(ideology == "Moderate", 0, 
+                                                                             ifelse(ideology == "Slightly conservative", 1, 
+                                                                                    ifelse(ideology=="Conservative", 2, 3))))))))
+
+##Interest in politics
+
+survey.data <- survey.data %>% mutate(interest_politics = ifelse(is.na(interest_politics)==TRUE, NA, ifelse(interest_politics == "Not very interested", 1, ifelse(interest_politics == "Somewhat interested", 2, ifelse(interest_politics == "Interested", 3, 4)))))
+
+##Votes counted fairly
+
+survey.data <- survey.data %>% mutate(votes_counted_fairly = ifelse(is.na(votes_counted_fairly)==T, NA, ifelse(votes_counted_fairly == "Not at all", 0, ifelse(votes_counted_fairly == "Fairly often", 1, 2))))
+
+##Election officials fair
+
+survey.data <- survey.data %>% mutate(election_officials_fair = ifelse(is.na(election_officials_fair)==T, NA, ifelse(election_officials_fair == "Not at all", 0, ifelse(election_officials_fair == "Fairly often", 1, 2))))
+
+##Voters have choice
+
+survey.data <- survey.data %>% mutate(voters_have_choice = ifelse(is.na(voters_have_choice)==T, NA, ifelse(voters_have_choice == "Not at all", 0, ifelse(voters_have_choice == "Fairly often", 1, 2))))
+
+##Disgust
+
+survey.data <- survey.data %>% mutate(disgust = ifelse(is.na(disgust) == T, NA, ifelse(disgust == "Not at all", 0, ifelse(disgust == "Somewhat", 1, 2))))
+
+##Pride
+
+survey.data <- survey.data %>% mutate(pride = ifelse(is.na(pride) == T, NA, ifelse(pride == "Not at all", 0, ifelse(pride == "Somewhat", 1, 2))))
+
+##Outrage
+
+survey.data <- survey.data %>% mutate(outrage = ifelse(is.na(outrage) == T, NA, ifelse(outrage == "Not at all", 0, ifelse(outrage == "Somewhat", 1, 2))))
+
+##Nervous
+
+survey.data <- survey.data %>% mutate(nervous = ifelse(is.na(nervous) == T, NA, ifelse(nervous == "Not at all", 0, ifelse(nervous == "Somewhat", 1, 2))))
+
+
+##Anger
+
+survey.data <- survey.data %>% mutate(anger = ifelse(is.na(anger) == T, NA, ifelse(anger == "Not at all", 0, ifelse(anger == "Somewhat", 1, 2))))
+
+##Fear
+
+survey.data <- survey.data %>% mutate(fear = ifelse(is.na(fear) == T, NA, ifelse(fear == "Not at all", 0, ifelse(fear == "Somewhat", 1, 2))))
+
+##Hope
+
+survey.data <- survey.data %>% mutate(hope = ifelse(is.na(hope) == T, NA, ifelse(hope == "Not at all", 0, ifelse(hope == "Somewhat", 1, 2))))
+
+##Happiness
+
+survey.data <- survey.data %>% mutate(happiness = ifelse(is.na(happiness) == T, NA, ifelse(happiness == "Not at all", 0, ifelse(happiness == "Somewhat", 1, 2))))
+
+
+##Overall reaction
+
+survey.data <- survey.data %>% mutate(overall.reaction = ifelse(is.na(overall.reaction)==T, NA, 
+                                                                       ifelse(overall.reaction == "Extremely negative", -2, 
+                                                                              ifelse(overall.reaction == "Somewhat negative", -1, 
+                                                                                     ifelse(overall.reaction == "Neither positive nor negative", 0, 
+                                                                                            ifelse(overall.reaction == "Somewhat positive", 1, 2))))))
+
+##Moral conviction
+
+survey.data <- survey.data %>% mutate(moral.convict = ifelse(is.na(moral.convict)==T, NA,
+                                                             ifelse(moral.convict == "Not at all", 0, 
+                                                                    ifelse(moral.convict == "Moderately", 1, 2))))
+
+##Right wrong
+
+survey.data <- survey.data %>% mutate(right.wrong = ifelse(is.na(right.wrong)==T, NA,
+                                                             ifelse(right.wrong == "Not at all", 0, 
+                                                                    ifelse(right.wrong == "Moderately", 1, 2))))
+
+##Group important
+
+survey.data <- survey.data %>% mutate(group.important = ifelse(is.na(group.important)==T, NA, 
+                                                               ifelse(group.important == "Not at all important", 0, 
+                                                                      ifelse(group.important == "Slightly important", 1, 
+                                                                             ifelse(group.important == "Moderately important", 2, 
+                                                                                    ifelse(group.important == "Very important", 3, 4))))))
+
+##Group describe
+
+survey.data <- survey.data %>% mutate(group.describe = ifelse(is.na(group.describe)==T, NA, 
+                                                               ifelse(group.describe == "Not well at all", 0, 
+                                                                      ifelse(group.describe == "Slightly well", 1, 
+                                                                             ifelse(group.describe == "Moderately well", 2, 
+                                                                                    ifelse(group.describe == "Very well", 3, 4))))))
+##Group we
+
+survey.data <- survey.data %>% mutate(group.we = ifelse(is.na(group.we)==T, NA, 
+                                                               ifelse(group.we == "Never", 0, 
+                                                                      ifelse(group.we == "Sometimes", 1, 
+                                                                             ifelse(group.we == "About half the time", 2, 
+                                                                                    ifelse(group.we == "Most of the time", 3, 4))))))
+##Group think
+
+survey.data <- survey.data %>% mutate(group.think = ifelse(is.na(group.think)==T, NA, 
+                                                               ifelse(group.think == "None at all", 0, 
+                                                                      ifelse(group.think == "A little", 1, 
+                                                                             ifelse(group.think == "A moderate amount", 2, 
+                                                                                    ifelse(group.think == "A lot", 3, 4))))))
+
+
+##standup.rights 
+
+survey.data <- survey.data %>% mutate(standup.rights = ifelse(is.na(standup.rights)==T, NA, 
+                                                               ifelse(standup.rights == "None at all", 0, 
+                                                                      ifelse(standup.rights == "A little", 1, 
+                                                                             ifelse(standup.rights == "A moderate amount", 2, 
+                                                                                    ifelse(standup.rights == "A lot", 3, 4))))))
+
+
+##improve.fairness 
+
+survey.data <- survey.data %>% mutate(improve.fairness = ifelse(is.na(improve.fairness)==T, NA, 
+                                                               ifelse(improve.fairness == "None at all", 0, 
+                                                                      ifelse(improve.fairness == "A little", 1, 
+                                                                             ifelse(improve.fairness == "A moderate amount", 2, 
+                                                                                    ifelse(improve.fairness == "A lot", 3, 4))))))
+
+##change.together
+
+survey.data <- survey.data %>% mutate(change.together = ifelse(is.na(change.together)==T, NA, 
+                                                               ifelse(change.together == "None at all", 0, 
+                                                                      ifelse(change.together == "A little", 1, 
+                                                                             ifelse(change.together == "A moderate amount", 2, 
+                                                                                    ifelse(change.together == "A lot", 3, 4))))))
+
+##group.influence
+
+survey.data <- survey.data %>% mutate(group.influence = ifelse(is.na(group.influence)==T, NA, 
+                                                               ifelse(group.influence == "None at all", 0, 
+                                                                      ifelse(group.influence == "A little", 1, 
+                                                                             ifelse(group.influence == "A moderate amount", 2, 
+                                                                                    ifelse(group.influence == "A lot", 3, 4))))))
+
+##Demonstration
+
+survey.data <- survey.data %>% mutate(demonstration = ifelse(is.na(demonstration)==T, NA, 
+                                                               ifelse(demonstration == "Extremely unlikely", 0, 
+                                                                      ifelse(demonstration == "Somewhat unlikely", 1, 
+                                                                             ifelse(demonstration == "Neither likely nor unlikely", 2, 
+                                                                                    ifelse(demonstration == "Somewhat likely", 3, 4))))))
+
+##Petition
+
+survey.data <- survey.data %>% mutate(petition = ifelse(is.na(petition)==T, NA, 
+                                                               ifelse(petition == "Extremely unlikely", 0, 
+                                                                      ifelse(petition == "Somewhat unlikely", 1, 
+                                                                             ifelse(petition == "Neither likely nor unlikely", 2, 
+                                                                                    ifelse(petition == "Somewhat likely", 3, 4))))))
+
+##Donate.party
+
+survey.data <- survey.data %>% mutate(donate.party = ifelse(is.na(donate.party)==T, NA, 
+                                                               ifelse(donate.party == "Extremely unlikely", 0, 
+                                                                      ifelse(donate.party == "Somewhat unlikely", 1, 
+                                                                             ifelse(donate.party == "Neither likely nor unlikely", 2, 
+                                                                                    ifelse(donate.party == "Somewhat likely", 3, 4))))))
+
+##Donate.ngo
+
+survey.data <- survey.data %>% mutate(donate.ngo = ifelse(is.na(donate.ngo)==T, NA, 
+                                                               ifelse(donate.ngo == "Extremely unlikely", 0, 
+                                                                      ifelse(donate.ngo == "Somewhat unlikely", 1, 
+                                                                             ifelse(donate.ngo == "Neither likely nor unlikely", 2, 
+                                                                                    ifelse(donate.ngo == "Somewhat likely", 3, 4))))))
+
+##group.do.something
+
+
+survey.data <- survey.data %>% mutate(group.do.something = ifelse(is.na(group.do.something)==T, NA, 
+                                                               ifelse(group.do.something == "Extremely unlikely", 0, 
+                                                                      ifelse(group.do.something == "Somewhat unlikely", 1, 
+                                                                             ifelse(group.do.something == "Neither likely nor unlikely", 2, 
+                                                                                    ifelse(group.do.something == "Somewhat likely", 3, 4))))))
+```
+
+Emotions index
+
+```{r}
+survey.data <- survey.data %>% mutate(anger.index = anger + outrage + disgust)
+```
+
+Group identity index
+
+```{r}
+survey.data <- survey.data %>% mutate(identity.index = group.describe + group.important + group.we + group.think)
+```
+
+
+Group efficacy index
+
+```{r}
+survey.data <- survey.data %>% mutate(efficacy.index = standup.rights + improve.fairness + change.together + group.influence)
+```
+
+Morality index
+
+```{r}
+survey.data <- survey.data %>% mutate(moral.index = right.wrong + moral.convict)
+```
+
+CA index
+
+```{r}
+survey.data <- survey.data %>% mutate(ca.index = demonstration + petition + donate.ngo + donate.party + group.do.something)
+```
+
+Dummies for certain covariates
+
+```{r}
+survey.data <- dummy_cols(survey.data, select_columns = c("Employment.Status", "Ethnicity", "Highest.education.level.completed"))
+```
+
+
+Writing
+
+```{r}
+write.csv(survey.data, "survey data.csv")
+```
+
