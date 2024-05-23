@@ -1,0 +1,501 @@
+---
+title: "Election fraud, electoral defeat, and anger before the 2020 US election"
+abstract: "Research on election manipulation often holds that rigged elections come with costs to the winning party's legitimacy. Different implicit assumptions have been made about the mechanisms for these costs; some assume that rigged elections mobilize committed opponents, while others assume that fraud broadens the opposition coalition. The 2020 US election, which millions of Americans believed to have been rigged, offers an opportunity to test these mechanisms. Using feelings of anger to operationalize legitimacy costs, a pre-election survey experiment and data from a two-wave ANES panel survey show that---while both mechanisms are possible---in practice, legitimacy costs are mainly expressed through intensifying anger among the losing party's strongest supporters. This result has important implications for understanding election manipulation, democratization, and democratic backsliding. (Word count: 8618)"
+output: 
+  pdf_document: 
+linkcolor: blue
+bibliography: C:/Users/colej/Documents/Research projects/2020_election_survey/bib_ch.bib
+#biblio-style: "apalike"
+fontsize: 12pt
+link-citations: yes
+toc: false
+csl: C:/Users/colej/Documents/Research projects/2020_election_survey/chicago-author-date.csl
+header-includes: \usepackage{booktabs}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(lme4)
+library(kableExtra)
+library(modelsummary)
+library(interactions)
+
+
+anes_data <- read.csv(here::here("Data", "anes_modified_long.csv"))
+
+survey.data <- read.csv(here::here("Data", "survey data.csv"))
+survey.data <- survey.data %>% mutate(biden.winner = ifelse(vignette_winning_candidate == "biden", 1, 0))
+survey.data <- survey.data %>% mutate(anger.index = (anger + outrage)/2)
+
+
+anes_data <- anes_data %>% mutate(gender_factor = factor(profile_gender))
+anes_data <- anes_data %>% mutate(race_factor = factor(profile_racethnicity))
+
+## Dividing ANES respondents into Trump opponents, Trump moderates, and  Trump supporters
+anes_data <- anes_data %>% mutate(trump_support_factor = ifelse(is.na(fttrump)==T, NA, ifelse(fttrump <=20, "opponent",
+                                                                            ifelse(fttrump >=80, "supporter", ifelse(fttrump > 20 & fttrump <50, "lean_opponent", "lean_supporter")))))
+anes_data <- anes_data %>% mutate(trump_support_factor = factor(trump_support_factor))
+
+anes_data$trump_support_factor <- relevel(anes_data$trump_support_factor, ref = "opponent")
+
+
+#(Note: also maybe include system justification literature, see van der Toorn et al 2011; Jost et al 2017))
+```
+
+\newpage
+
+[Note: be sure to include Aarslew 2022 in discussion or framing--this paper on anger could help explain their more general findings]
+
+[Note 2: This paper links the democratic backsliding literature (which has largely focused on the demand side--voters don't penalize co-partisans for eroding democracy) with the democratization and self-enforcing democracy literatures, where citizen backlash to rigged elections is centered. Specifically, we have papers arguing that polarization makes voting in autocracy more likely, and we have papers arguing that subverting democracy may lead to protest. These claims are somewhat in tension, a tension which has not been much investigated.]
+
+[Note 3: Prior work tends to be, *prospective*, *demand-driven*, or both. Meaning: prior studies typically look at whether / how / why voters vote for or against anti-democratic candidates. This paper is *retrospective* -- reflects punishment for existing incumbents. and ultimately poses a supply-driven argument for the relationship between polarization and backsliding: as polarization increases, resistance to incumbents will increase regardless of democratic norm violation. Since norm violation can increase the likelihood of remaining in power (holding backlash constant), this has the effect of making power-grabs more likely. By mobilizing ones own side, as well, the violation - backlash - countermobilization cycle may be perceived as beneficial for incumbents, especially vulnerable ones. ]
+
+The storming of the US Capitol during the certification of the Electoral College vote on January 6, 2021 demonstrated an unusual phenomenon for American politics: a mass protest against an allegedly manipulated presidential election. More broadly, the efforts of President Donald Trump to undermine his supporters' faith in election integrity in the United States before and after the 2020 election make the US an important test case for theories about democratic resilience. In particular, it allows us to test  theories about the origins of political anger in a contested executive election. To what extent is partisan anger driven by the bare fact of losing the election, versus "unfair" defeat through electoral cheating? Given that political anger is tied to behavior like mobilization, information-seeking, and polarization, the answer to this question has implications for democratic backsliding. The implications are...
+
+
+
+In many theories of election manipulation, governments and political parties are understood to suffer a loss of citizen support when they engage in electoral malfeasance [@birch2011]. This assumption is closely linked to the idea that the risk of post-election protest is a deterrent to would-be manipulators; governments considering election manipulation are thought to weigh the expected gains against the risk of sparking a public backlash [@magaloni2010;@Little2012]. The risk of a protested election, in turn, is thought to make democratic regimes resistant to large-scale manipulation; this is the logic of 'self-enforcing' democracy [@Fearon2011;@Hyde2014a]. The 2020 US election provides an excellent opportunity to study the legitimacy costs of manipulated elections.
+
+Legitimacy costs are fundamental to understanding variation in the severity of election manipulation, and are also central to theories of authoritarian stability and democratic consolidation. Nevertheless, with some exceptions, the concept is usually relied upon as an assumption in theoretical work; the precise nature of such costs is not generally explicated. There are at least two ways that legitimacy costs are implicitly theorized to operate in previous work. First, they may intensify anger among the losing candidate's supporters; in this model of legitimacy costs, election fraud makes mobilizing opposition-minded citizens easier. In a second model, election manipulation *broadens* the opposition coalition by disillusioning supporters of the fraudulent winner [@Reuter2021] or linking citizens with disparate grievances [@tucker2007]. Whether legitimacy costs operate through one, both, or neither of these channels is important to our understanding of opposition and incumbent behavior in contested elections, and to regime stability.
+
+
+Moreover, the concept of legitimacy costs is rarely operationalized to assess its importance empirically. By doing so, this paper contributes to the literatures on election manipulation, authoritarian resilience, and democratic backsliding, as well as to our understanding of the contested 2020 US election. It conceptualizes legitimacy costs in a way that is both theoretically sound and empirically testable, by focusing on feelings of anger among citizens. It then tests existing theories of how citizens should respond to a manipulated election using an original pre-election survey experiment along with panel data from the 2020 American National Election Survey---conducted in two waves before and after the election. To my knowledge, this is the first attempt to explicitly distinguish between the two models of legitimacy costs theoretically and empirically.
+
+The results from this study generally confirm the idea that there are costs for the winning party when supporters of the losing side believe the election has been stolen. There is limited evidence in the survey experiment to show that the coalition-expansion mechanism is plausible in the abstract. The fraud treatment condition substantially increased the ideological range of people who reported strong feelings of anger.
+
+However, the bulk of the evidence leans toward the base-mobilization hypothesis. Further analysis of the survey experiment shows that Trump opponents are much less likely to convert their anger into collective action interest than Trump supporters. The panel survey, furthermore, suggests that base-mobilization is the main mechanism of real-world legitimacy costs. In this context, low confidence in US election integrity is associated with higher levels of anger among Trump supporters, but not among Biden supporters. Crucially, this outcome is seen even among Biden supporters who distrust US elections and feel relatively warmly toward President Trump. That these Biden supporters, who should be considered strong candidates for the coalition-building mechanism, appear uncompelled by claims of election rigging runs counter to that model.
+
+Consequently, there is little evidence that allegations of election fraud expanded the potential protest coalition beyond the strongest Trump supporters, even among others who became more skeptical of US election integrity after the election. These results may generate cause for concern about the health of democracy in the United States and other politically polarized societies. If legitimacy costs are mostly confined to the losing side's base, they are less likely to deter election manipulation (and uphold electoral democracy as a result).
+
+
+
+
+# Anger, elections, and the risk of democratic backsliding
+
+
+
+
+Governments and political parties have a variety of tools they can use to unfairly influence an election. Given the benefits of holding office, as well as the indirect benefits of successful manipulation [@Simpser2011], what deters parties from making use of those tools? In particular, what prevents a democratically elected incumbent from utilizing the powers office to bias the outcome of an election in their favor (thus subverting democracy)? One prominent answer to this question proposed in the literature on election manipulation is the risk of mass protest [@magaloni2010;@Little2015;@Chernykh2015]. Such strategic models of election manipulation and protest are also related to a rich literature on the causes of the Color Revolutions, a succession of protests against flawed elections in post-communist regimes during the 2000s [@LucanWay2008;@Bunce2006a]. Tucker [-@tucker2007], for example, explains the Color Revolutions by framing the moment of a 'stolen' election as a focal point that solves collective-action problems for people who are dissatisfied with the government. 
+
+Despite this focus in the literature on election manipulation, especially in the context of non-democratic regimes, the literature on democratic backsliding has largely taken a different tack. The bulk of recent studies on democratic backsliding has taken a *prospective*, *demand-side* approach. Researchers in this tradition frequently deploy survey experiments, especially conjoint experiments, to uncover the degree to which voters are willing to vote for a candidate who takes anti-democratic positions. Formal models that predict the behavior of ideologically supportive voters are also common [@grilloTheoriesDemocraticBacksliding2024]. In other words, prior work largely focuses on the conditions under which voters will choose to elect undemocratic candidates. Partisan polarization has been consistently identified as prominent driver of backsliding in such models, and also appears associated with backsliding worldwide [@orhanRelationshipAffectivePolarization2022].
+
+For instance, Graham and Svolik [-@Graham2020] use both formal modeling and a conjoint experiment to show that Americans are less willing to defect from a favored candidate who takes an undemocratic position when the opposing candidate is far from them politically; centrists, who are more ambivalent between the candidates, are most likely to defect from anti-democratic candidates. Moreover, they find that there is a partisan double-standard: partisans are willing to tolerate anti-democratic behavior from their own side, but not from their opponents. This finding builds on a longer trend of partisan polarization in American politics [@Iyengar2019].
+
+Such prospective anti-democratic behavior\textemdash voting in candidates who promise to curtail democracy\textemdash can be motivated by a variety of factors. These include polarized voters' fear that their opponents will undermine democracy more [@braleyWhyVotersWho], trading off legitimacy for policy support [@aarslewWhyDonPartisans2022], feeling threatened by the opposing party [@simonovitsDemocraticHypocrisyOutGroup2022], exaggerated misperceptions of the other group's hostility toward one's own [@bergExaggeratedMetaperceptionsPredict2020], and motivated reasoning and rationalization [@krishnarajanRationalizingDemocracyPerceptual2023]. 
+
+While this strand of research has been highly productive, and has helped illuminate why segments of a population may be drawn to (or reluctantly support) an anti-democratic candidate, they cannot fully explain the phenomenon of democratic backsliding. Prior work has helped identify the conditions under which voters might demand anti-democratic behavior, but has done less to explore the conditions under which elected incumbents will in fact supply it. This tension in the literature is highlighted by recent work by Saikkonen and Christensen [-@saikkonenGuardiansDemocracyPassive2023], who find that even in Finland, a highly democratic society with a low degree of polarization, there are constituencies for undemocratic behavior. If 'demand' for undemocratic behavior by co-partisans is commonly found across democracies (i.e. demand is consistent), why then is polarization associated with democratic backsliding? To address this question requires an understanding of the costs that incumbents may bear from seeking to curtail democracy, in addition to the benefits.
+
+The cost to incumbents can be understood as the risk of backlash among non-supporters. In the literature on election manipulation in non-democracies, this is cost is most frequently conceptualized as the risk of mass protest [@magaloni2010]. The concept can be quite broad, however, as in Birch's discussion of 'legitimacy costs.' Protest is one expression of citizens' unhappiness at "having their contribution to the public choice taken away from them," but other forms of mobilization\textemdash such as greater participation in civil society or formal efforts to hold politicians accountable\textemdash are also possible [@Birch2011, pp. 58-59]. Norris, Frank, and Martínez i Coma [@Norris2015] identify an escalating series of costly consequences of lost election legitimacy, including demonstrations, opposition mobilization, legal challenges, and violence.
+
+Individuals' emotions, particularly anger, provide a link across these concepts. In complement to longstanding strategic models of individual behavior [@downsEconomicTheoryDemocracy1957], other researchers have sought to ground political behavior in social psychology, including individuals' emotional states [@websterEmotionPoliticsNoncognitive2022]. Feelings of anger, in particular, can reduce "losers' consent" in election outcomes [@tilleyLosersConsentEmotions2024], and consequently are closely tied both to threats to democratic governance and protection of it.
+
+
+Anger is understood to be the emotion most strongly associated with collective action [@VanZomeren2013;@valentino2011election]. Feelings of anger can lead to consistently higher political participation, including costly forms of engagement like protest [@valentino2011election;@Aytac2019]. As a result, anger can help citizens overcome collective action problems, in part by leading them to read threats against a group as threats that affect the self [@groenendyk2014emotional]. Anger is particularly well-suited to sparking protest, since it can reinforce risk-seeking behavior [@lerner2001fear] and problem-focused coping [@Folkman1986]. For this reason, survey research has shown that anger is predictive of future collective action interest. Anger can play this powerful role because it is an approach emotion---associated with a desire to address a problem or restore the status quo [@Carver2009]---that people may feel in response to perceived injustice [@Lazarus1991;@Roseman1991]. 
+
+As a major motivator for collective action, politicians regularly seek to elicit their supporters' anger to get them to the polls, to donate, or to take to the streets [NOTE: ADD CITES from Webster book]. Consequently, partisan anger might be deployed in defense of democracy\textemdash i.e. against a rigged election, as is traditionally imagined in the self-enforcing democracy literature [@Fearon2011]\textemdash or in subversion of it, as demonstrated by January 6, 2020 Capitol attack. The availability of such strategies, depends in part on the relative emotional value citizens place on winning the election (or, through the lens of negative partisanship, defeating their foes [@abramowitzRiseNegativePartisanship2016]) versus upholding (or violating) democratic norms. Prior work has identified anger as both a product of strong partisan identity, especially when confronting the threat of electoral loss [@huddyExpressivePartisanshipCampaign2015], and as a driver of polarization [@websterSocialConsequencesPolitical2022]. 
+
+Finally, violations of decision-making rules to produce a biased outcome\textemdash procedural injustice\textemdash have been shown to increase feelings of anger [@Weiss1999;@Krehbiel2000;@Murphy2008]. Manipulation of election outcomes is one such violation [@wilkingPortabilityElectoralProcedural2011], which can leave people feeling aggrieved [@aarslewDoesElectionFraud2023;@Szakonyi2022]. Feelings of anger need not be produced by personally experiencing unfair treatment; they can also be triggered vicariously if a co-member of one's group is harmed by a member of another group [@Gordijn2006;@Hillebrandt2017]. Furthermore, large-scale and lab-experimental studies have shown that lower perceptions of procedural justice lead to increased feelings of anger, which in turn leads to reduced compliance with authorities [@murphy_procedural_2008;@Beijersbergen2015;@Barkworth2015]. 
+
+In summary, prior research has found widespread support for the claim that some voters in democracies will express demand for undemocratic candidates, yet this mechanism cannot fully account for the risk of democratic backsliding. To do so, it is necessary to incorporate the political risks of eroding democracy for incumbents, more commonly a focus of the literature on election manipulation in authoritarian regimes. Feelings of anger, which can motivate various forms of collective action against a perceived threat, represent one such cost. At present, the relative influence of procedural injustices on anger among opposition partisans remains unclear.
+
+
+
+# Theory
+
+A long literature in social psyschology has identified procedural justice as one of the foundations of subjective evaluations of an authority's legitimacy [@Tyler2006]. Procedural justice refers to individuals' beliefs that when government officials act, they are following a set of rules in an even-handed and predictable way. This belief can be influenced by the degree to which an individual or group has an opportunity to influence policy; that is, having a voice during the procedure improves fairness judgments, even when the outcome is unfavorable [@Lind1990;@Tyler1985]. The neutrality of decision-makers, or the rule of law, is another an important factor in procedural justice evaluations [@Tyler2007], as is decision-makers' respect for citizens as individuals and members of the community [@Miller2001]. Survey research has regularly found a positive relationship between perceptions of procedural justice and legitimacy judgments, and between those two factors and compliance with the law [@Tyler2002;@Reisig2014;@Hartner2008].[^1] This makes a procedural justice framing especially useful for understanding the nature of the costs an incumbent may face in the context of an allegedly rigged election.
+
+[^1]: However, there is also evidence to question the causal direction of this relationship [@Nagin2017;@Nagin2020].
+
+All of these features of procedural justice are undermined, to one degree or another, by electoral manipulation in its various forms. Each of the links in the 'chain of democratic choice' articulated by Schedler [-@schedler2002] involves non-neutral treatment of some voting group or political actor. However, some of violations of democratic electoral principles rely on procedurally legitimate processes (i.e. the drawing of gerrymandered maps by a duly elected legislature), while others violate even the publicly stated rules of the game (i.e. ballot-stuffing or falsification). As a starting point, this paper will focus on a particular form of election manipulation that is *prima facie* procedurally illegitimate---election fraud. Fraud covers multiple techniques, including artificially inflating the results for favored parties or discarding opposition ballots, and "[i]nvariably...violates the principle of democratic equality" [@schedler2002].  
+
+
+ This leads to a baseline hypothesis to be tested in the survey experiment:
+
+<!-- It is also well known that anger contributes to increases in political engagement and protest [@van_zomeren_put_2004;@VanStekelenburg2013a;@Jasper2014]. Anger is particularly important for triggering political participation, including in risky behavior like protest, because it prompts people to rely on simple heuristics for decision-making (e.g. solidarity with co-partisans), rather than strategic deliberation [@MacKuen2010]; consequently, feelings of anger reduce the severity of the collective action problem inherent in protest [@groenendyk2014emotional]. Increased anger is thus an outcome of failed procedural justice, which can in turn raise protest risk; this makes anger an ideal indicator for legitimacy costs arising from a procedurally unjust election. --> 
+
+> Hypothesis 0: Allegations of election manipulation will lead to stronger feelings of anger, compared to a clean election.
+
+
+However, prior research should lead us to expect that anger after a flawed election will be mediated by partisanship and status as an electoral winner or loser. The effect of anger on protest is generally understood to be group-based [@sturmer_pathways_2009], with individuals feeling stronger attachment to the threatened group being more likely to experience anger and its political effects. For example Valentino and Neuner [-@Valentino2017] show that the increased effect of anger on participation is only felt by the disadvantaged party (in their case, Democrats reacting to voter-ID laws). Likewise, Valentino et al [-@Valentino2009] show that the role of anger in predicting a variety of forms of political participation is most important for those who feel threatened by a particular outcome.
+
+> Hypothesis 1: Feelings of anger will be stronger among supporters of the losing candidate in a rigged election, than among supporters of the winner.
+
+Most importantly, the severity of partisan polarization is likely to mitigate the effect of election-rigging on opposition respondent anger. The more highly polarized opposition voters are, the more unacceptable they will find even a clean victory by the incumbent. This should reduce the gap in anger felt by opposition parties in a clean election vis-a-vis a fraudulent one. Americans increasingly view supporters of the opposing party in personally negative terms: as hypocritical, less intelligent, close-minded, or lazy [@levenduskyAmericansNotPartisans2018], and as dangerous to democracy [@braleyWhyVotersWho]. Accordingly, they are increasingly uncomfortable socializing across party lines. The level of affective polarization in the United States is high, and the increase in such sentiments has been unusually rapid compared to other developed countries [@boxellCrossCountryTrendsAffective2024]. 
+
+> Hypothesis 2 (Cross-partisan coalition): Among weak supporters of the winning candidate, increasing belief in election manipulation will be associated with stronger feelings of anger.
+
+
+
+
+
+# Research design, data, and methods
+
+I make use of multiple methods to test these propositions. First, I use data from a survey experiment conducted in mid-October 2020. In the experiment, 1049 respondents were recruited via the research platform Prolific. The experiment is a 2 x 2 vignette experiment, in which respondents were presented with a possible outcome of the 2020 election. First, respondents were prompted to imagine that either Donald Trump or Joe Biden would be elected in November. Second, they were presented with information about the nature of that victory. In the control condition, the successful candidate was described as having won the presidency due to victory in a key swing state. In the treatment condition, the swing-state victory was ascribed to falsification of the results by government officials.
+
+Second, I use observational data from the ANES 2020 Social Media Study, a two-wave panel survey (pre- and post-election) conducted by NORC using a probability sample of US citizens age 18 and older. Due to high-profile allegations of fraud in the US election, it is possible to use the panel design to study how respondents' self-reported emotions and attitudes toward election integrity changed over time. The survey includes responses from 5,277 individuals who completed both waves of the survey. 
+
+## Survey experiment
+
+Prior to being shown the scenario in the survey experiment, I collected information on respondents' demographic and political characteristics, in order to assess balance across treatment and control groups for relevant covariates. These included socioeconomic status, ideology, interest in politics, prior belief that votes are counted fairly in the US, prior belief that election officials are fair, approval rating of President Trump, employment status, race, education level, sex, and age.
+
+Randomization successfully achieved balance across most demographic covariates (indicated by an standardized mean difference between groups of less than 0.1 for each covariate), as illustrated in the appendix. One important exception is respondent *ideology*, which is moderately imbalanced across the winning candidate groups: the standardized mean difference is -0.13, meaning that the average ideology in the group where Biden is presented as the winner is just over one-tenth of a standard deviation to the left of the average ideology in the group where Trump is the winner.[^4] As a result, I control for ideology in the models.  For simplicity of comparison with the real-world ANES data, I present the results from the subset of individuals who were sorted into the Biden-wins condition. Results for the Trump-wins condition are reported in the appendix. I also measured respondents' pre-treatment confidence that votes are counted fairly and that election officials can be trusted, the same measures used in the ANES survey; these attitudes were balanced across treatment groups.
+
+[^4]: Ideology was measured by asking respondents to place themselves on a seven-point scale ranging from extremely liberal to extremely conservative.
+
+After viewing the vignette, respondents were asked: "Generally speaking, how would you feel about the election described above...?  Please tell us how much you feel each of the following emotions" on a scale from 0 to 2. Multiple emotions were listed, including pride and happiness, in order to avoid design effects in which respondents guess the researcher's desired outcome. As in the ANES study, *anger index* was created by summing respondents' level of 'anger' and 'outrage,' and dividing by two. Respondents were asked to rate President Trump on a scale from 0 (strongly dislike) to 10 (strongly like); this forms the variable *Trump rating*. Due to the need to interact *Trump rating* with the binary treatment condition variable, and the need to control for ideology due to moderate imbalance, I use OLS models to analyze the experimental data rather than the simple difference in means. 
+
+In order to check the relationship between anger and protest risk, I also construct a measure of survey respondents' willingness to engage in collective action. Respondents were asked, "If you lived in the state where this happened, how likely is it that you would participate in any of the following activities in response?" They were presented with five options: participate in a demonstration, sign a petition, donate to a political party, donate to an NGO focused on clean elections, and "do something with fellow [party-members] to stop this," where 'party-member' was replaced with the name of the party the respondent most supported. Each option could be rated on a five-point scale from "extremely unlikely" to "extremely likely." The variable *collective action interest* was created by summing individual responses for all five options. Mediation analysis for anger and collective action is presented in more detail the appendix; the results show that anger is a statistically and substantively significant mediator of self-reported interest in participating in collective action.
+
+
+
+## Panel survey
+
+In models using the ANES data, I use a similar dependent variable. In the survey, respondents reported their emotional reaction to the way things are going in the country on a five-point scale (ranging from 'not at all' to 'extremely' for each emotion). The first dependent variable, *anger index*, is created by summing each response for the emotions "angry" and "outraged," and dividing by two. 
+
+The primary explanatory variables are constructed similarly. *Confidence in elections* is an index of two variables from the original survey. The first of these asks respondents how much they trust that votes in elections are counted correctly; the second asks how much confidence they have in the officials who oversee elections. Both original variables are on a five-point scale; I sum the two together and divide by two to create the index. A second explanatory variable captures respondents' attitude toward President Trump prior to the election, based on a feeling thermometer, where zero indicates "very cold or unfavorable" feelings and 100 indicates "very warm or favorable feelings." Using this, I create the categorical variable *Trump favorability*, which categorize respondents as "Trump opponents" (feeling thermometer < 20), "lean opponents" (20 to 50), "lean supporters" (51 to 80), and "Trump supporters" (greater than 80). While the exact cutoffs are arbitrary, converting the continuous variable to a categorical one allows for a more direct test of Hypotheses 2, which focus on 'moderates' and Trump opponents. Models using the original feeling thermometer scale are presented in the appendix. Finally, a dummy variable for vote-choice, *Trump voter*, takes on a value of one if the respondent reports voting for Donald Trump, and zero otherwise.
+
+Since this is observational data, I also control for several factors that could affect feelings of anger. These include respondents' party identification, gender, race, education, and income levels, as well as the degree to which they report following the news. I also control for the level of financial hardship and concerns about their health due to the covid-19 pandemic, as well as overall financial worry. These controls are especially important given that some theories of post-election protest hold that they unite people with economic grievances, rather than with similar political ideologies [@Brancati2014a]. To analyze *anger index*, which makes use of both waves of data, I use a multilevel model with random intercepts by respondent (the 'within-between' estimator for panel data) to account for the fact that the same respondents are interviewed twice. 
+
+
+
+# Results
+
+## Survey experiment
+
+```{r experiment-anger-model}
+
+model.anger.falsify <- lm(anger.index ~ trump_rating*vignette_falsify  + ideology, data = survey.data %>% filter(vignette_laws == 0 & biden.winner == 1))
+#summary(model.anger.falsify)
+
+
+p_exp_anger <- sjPlot::plot_model(model.anger.falsify, type = "pred", terms = c("trump_rating [0, 9]", "vignette_falsify"), title = "Predicted values of anger index", axis.title = c("Trump rating", "Anger index"),
+                                  legend.title = "Fraud treatment")
+
+
+
+```
+
+The survey experiment allows for a precise test of Hypothesis 0 on the use of anger as an operationalization of legitimacy costs. The results presented in this section show that contemplating a fraudulent election does indeed cause increases in anger. Figure \@ref(fig:exp-anger-fig) shows the average level of anger reported by individuals across varying levels of support for President Trump, and their exposure to either the control or fraud vignettes. In this arm of the experiment, respondents were told to imagine that Joe Biden was the winner of the election; in the treatment condition, this outcome was attributed to election fraud by government officials.
+
+```{r exp-anger-models-table, include=FALSE}
+#stargazer::stargazer(model.anger.falsify, header = F)
+
+modelsummary(model.anger.falsify, title = "Survey-experiment model", stars = T, output = "table1.html",
+             coef_rename=c('trump_rating'= 'Trump rating',
+                            'vignette_falsify'= 'Fraud treatment',
+                            'ideology'   =  'Ideology',
+                            'trump_rating:vignette_falsify' = 'Trump rating x Fraud treatment'
+                            ),
+              gof_omit = 'AIC|BIC|F|Log.') 
+
+```
+
+
+As the figure shows, strong Trump opponents reported experiencing very little anger in the control condition (no fraud). Strong Trump supporters, predictably, report significantly more anger in the control condition. Respondents at all levels of Trump support show significantly greater feelings of anger in the fraud condition, relative to the control. However, this increase is most dramatic for strong Trump opponents---their reported feelings of anger jump from nearly 0 to almost 1.5 on a 2-point scale. Comparing the extremes of Trump support by vignette shows that Trump support has a large, significant, and positive effect on anger when a clean Biden win is assumed. In the fraud condition, on the other hand, respondents are more-or-less equally angry regardless of their feelings for President Trump. This suggests that, at least in the abstract, both base-mobilization and coalition-expansion aspects of legitimacy costs could be felt. 
+
+```{r exp-anger-fig, fig.cap="Trump support, election fraud, and anger (survey experiment)"}
+p_exp_anger + theme_bw()
+```
+
+However, the survey data also offers reason to suspect that this coalition-expansion effect, while present in the abstract, will not carry forward in a real election. Mediation analysis of self-reported interest in collective action and feelings of anger\textemdash reported below\textemdash shows that anger is a weak predictor of collective action interest among Trump opponents while a strong predictor among Trump supporters. In other words, while Trump opponents report anger in the fraud condition, that anger does not motivate them to join in collective action as redress for election fraud. To see how these dynamics fare in an actual election, it is necessary to turn to the panel survey.
+
+## ANES panel data
+
+ 
+Using the data from the ANES panel, Table \@ref(tab:fttrump-table) reports for the results from models that employ three-way interactions of the election period, Trump support, and measures of confidence in election integrity. Model 2 uses the categorical variable of Trump favorability as its measure, while Model 3 uses the binary *Trump voter* variable. The results are best understood graphically; Figure \@ref(fig:anger-fttrump-mlm) shows the marginal effect of Trump favorability on feelings of anger, conditional on confidence in election integrity. The results support the base-mobilization hypothesis, and do not support the coalition-building hypothesis.
+
+The top two panels of Figure \@ref(fig:anger-fttrump-mlm) shows that Trump opponents and lean-opponents do not show any significant change in anger across belief in election integrity. Those with low and high trust in US elections are roughly equally angry before and after the election. Self-reported anger among Trump opponents falls significantly after the election, but this drop is essentially uniform across all levels of trust in elections.
+
+By contrast, belief in election integrity is significantly associated with reduced anger among Trump supporters and lean-supporters, shown in the bottom two panels. This effect is especially pronounced among Trump supporters with high levels of trust in elections; they are significantly less angry after the election than before, despite their favored candidate's loss. Altogether, these results support H1 (base mobilization) but not H2 (coalition expansion). Trump opponents are pleased with his loss, even when they lack confidence in US election. Those who are weakly opposed to Trump show no change in anger, whether they trust elections or not. Meanwhile, low belief in election integrity serves to activate Trump supporters and lean-supporters; an effect which is especially strong among the losing candidate's most ardent supporters.
+
+
+Figure \@ref(fig:anger-bv-mlm) demonstrates additional support for the base-mobilization framework. Trump voters with the lowest confidence in elections remain just as angry following the election as they were before, while those with moderate or strong confidence in elections become significantly less angry. Among those who did not vote for Trump, confidence in election integrity has no relationship to feelings of anger; even those with low confidence are soothed after winning the election. Taken together, Models 2 and 3 provide consistent support for the base mobilization framework, and do not support the coalition expansion hypothesis.
+
+
+```{r anger_models_mlm}
+anes_data <- anes_data %>% mutate(period = factor(period))
+
+model_ft_ei_mlm <- lmer(anger_index ~ period*trump_support_factor*ei_index  + trump_voter +  pid7x +
+                     gender_factor + race_factor + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin + (1 | caseid)
+                    , data = anes_data)
+
+  #summary(model_ft_ei_mlm)
+p_ft_ei_mlm <- sjPlot::plot_model(model_ft_ei_mlm, type = "pred", terms = c("ei_index", "period", "trump_support_factor"), title = "Predicted values of anger index", axis.title = c("Confidence in elections", "Anger index"),
+                                  legend.title = "Post-election period")
+
+
+
+model_biden_ei_mlm <- lmer(anger_index ~ period*trump_voter*ei_index  + trump_support_factor +  pid7x +
+                     gender_factor + race_factor + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin + (1 | caseid)
+                    , data = anes_data)
+
+  #summary(model_mlm)
+p_bv_ei_mlm <- sjPlot::plot_model(model_biden_ei_mlm, type = "pred", terms = c("period", "ei_index [1, 3, 5]", "trump_voter"), title = "Predicted values of anger index", axis.title = c("Post-election period", "Anger index"),
+                                  legend.title = "Elec. confidence")
+
+```
+
+```{r anger_models_lm}
+model_ft_ei_ols <- lm(change_anger_index ~ change_ei_conf*fttrump  +  pid7x + trump_voter +
+                     gender_factor + race_factor + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin
+                    , data = anes_data %>% filter(period == 1))
+  #summary(model_ft_ei_ols)
+p_ft_ei_ols <- sjPlot::plot_model(model_ft_ei_ols, type = "pred", terms = c("change_ei_conf", "fttrump [0, 100]"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Change in elec. confidence", "Change in anger index"), legend.title = "Trump rating")
+
+
+model_biden_ei_ols <- lm(change_anger_index ~ change_ei_conf*trump_voter  +  pid7x + fttrump +
+                     gender_factor + race_factor + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin
+                    , data = anes_data %>% filter(period == 1))
+  #summary(model_biden_ei_ols)
+p_biden_ei_ols <- sjPlot::plot_model(model_ft_ei_ols, type = "pred", terms = c("change_ei_conf", "trump_voter"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Change in elec. confidence", "Change in anger index"), legend.title = "Trump voter")
+
+
+model_biden_ei_ft_ols <- lm(change_anger_index ~ change_ei_conf*trump_voter*fttrump  +  pid7x  +
+                     gender_factor + race_factor + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin
+                    , data = anes_data %>% filter(period == 1))
+  #summary(model_fttrump)
+p_bv_ft_ei_ols <- sjPlot::plot_model(model_biden_ei_ft_ols, type = "pred", terms = c("change_ei_conf", "trump_voter", "fttrump [0, 40, 80]"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Change in elec. confidence", "Change in anger index"), legend.title = "Trump voter")
+
+
+```
+
+
+```{r fttrump-table, warning=FALSE, include=FALSE}
+options(modelsummary_html = 'kableExtra')
+library(kableExtra)
+
+mods <- list()
+
+mods[["2"]] <- model_ft_ei_mlm
+mods[["3"]] <- model_biden_ei_mlm
+
+
+##Renaming the variables for the table
+
+
+modelsummary(mods, title = "ANES multilevel models", longtable = T, output = "table2.html", stars = T, 
+             coef_rename=c("period1" = "Post-election",
+                           'trump_support_factorlean_supporter'= 'Lean Trump',
+                           'trump_support_factorlean_opponent' = 'Lean opponent',
+                           'trump_support_factorsupporter' = 'Trump supporter',
+                           'trump_voter' = 'Trump voter',
+                            'ei_index'= 'Elec. confidence',
+                            'pid7x'   =  'Party ID',
+                           "persfin" = "Financial worry",
+                            'gender_factor2' = 'Female',
+                            'race_factor2' = 'Black',
+                           'race_factor3' = 'Other, non-Hispanic',
+                           'race_factor4' = 'Hispanic',
+                           'profile_educ5'  =  'Education level',
+                           'profile_income' = 'Income',
+                           'profile_newskeepup'   = 'Keep up with news',
+                           'covid_fin'  = 'Covid financial concern',
+                           'covid_worry' = 'Covid health worry',
+                           "period1:persfin" = "Post-election x Financial worry",
+                           "period1:trump_support_factorlean_supporter" = "Post-election x Lean Trump",
+                           "period1:trump_support_factorlean_opponent" = "Post-election x Lean opponent",
+                           "period1:trump_support_factorsupporter" = "Post-election x Trump supporter",
+                           "period1:ei_index" = "Post-election x Elec. confidence",
+                           "fttrump:ei_index" = "Trump rating x Elec. confidence",
+                           "period1:fttrump:ei_index" = "Post-election x Trump rating x Elec. conf.",
+                           "change_ei_conf" = "Change in elec. confidence",
+                           "trump_support_factorlean_supporter:ei_index" = "Elec. conf. x Lean Trump",
+                           "trump_support_factorlean_opponent:ei_index" = "Elec. conf. x Lean opponent",
+                           "trump_support_factorsupporter:ei_index" = "Elec. conf. x Trump supporter",
+                           "persfin:ei_index" = "Financial worry x Elec. conf.",
+                           "period1:trump_support_factorlean_supporter:ei_index" = "Post-election x Lean Trump x Elec. conf.",
+                           "period1:trump_support_factorlean_opponent:ei_index" = "Post-election x Lean opponent  x Elec. conf.",
+                           "period1:trump_support_factorsupporter:ei_index" = "Post-election x Trump supporter  x Elec. conf.",
+                           "period1:persfin:ei_index" = "Post-election x Financial worry x Elec. conf.",
+                           "period1:trump_voter" = "Post-election x Trump voter",
+                           "trump_voter:ei_index" = "Trump voter x Elec. conf.",
+                           "period1:trump_voter:ei_index" = "Post-election x Trump voter x Elec. conf."), 
+             gof_omit = 'Cond.|Marg.|F|Log.') #%>%
+ # footnote(general = "* = p < .1, ** = p < .05, *** = p <.01",threeparttable = T) %>%
+  #kable_styling(latex_options =c("repeat_header"))
+```
+
+
+
+
+
+
+```{r anger-fttrump-mlm, fig.cap="Anger, Trump support, and election confidence by pre-election (0) and post-election (1) panel wave", warning=FALSE, message=FALSE}
+p_ft_ei_mlm + theme_bw() + scale_color_grey() + scale_fill_grey(end = .5)
+```
+
+
+
+```{r anger-fttrump-ols, fig.cap="Anger, Trump feeling thermometer rating, and elction confidence (OLS).", include=FALSE}
+p_ft_ei_ols + theme_bw() 
+```
+
+ 
+
+```{r bv-table, warning=FALSE, include=FALSE}
+mods <- list()
+
+mods[["3"]] <- model_biden_ei_mlm
+mods[["4"]] <- model_biden_ei_ols
+mods[["5"]] <- model_biden_ei_ft_ols
+
+modelsummary(mods, title = "ANES wave-2 models", longtable = T, output = "table3.html", stars = T, 
+             coef_rename=c("period1" = "Post-election",
+                           'fttrump'= 'Trump rating',
+                           'persfin' = 'Financial worry',
+                            'ei_index'= 'Elec. confidence',
+                            'pid7x'   =  'Party ID',
+                            'gender_factor2' = 'Female',
+                            'race_factor2' = 'Black',
+                           'race_factor3' = 'Other, non-Hispanic',
+                           'race_factor4' = 'Hispanic',
+                           'profile_educ5'  =  'Education level',
+                           'profile_income' = 'Income',
+                           'profile_newskeepup'   = 'Keep up with news',
+                           'covid_fin'  = 'Covid financial concern',
+                           'covid_worry' = 'Covid health worry',
+                           "period:persfin" = "Post-election x Financial worry",
+                           "period:ei_index" = "Post-election x Elec. confidence",
+                           "persfin × ei_index" = "Financial worry x Elec. confidence",
+                           "period1:trump_voter" = "Post-election x Trump voter",
+                           "period1:ei_index" = "Post-election x Elec. confidence",
+                           "trump_voter:ei_index" = "Biden voter x Elec. confidence",
+                           "period1:trump_voter:ei_index" = "Post-election x Trump voter x Elec. conf.",
+                           "change_ei_conf:trump_voter" = "Change in elec. conf. x Biden voter",
+                           "change_ei_conf:fttrump" = "Change in elec. conf. x Trump rating",
+                           "trump_voter:fttrump	" = "Trump voter x Trump rating",
+                           "change_ei_conf:trump_voter:fttrump" = "Change in elec. conf. x Trump voter x Trump rating",
+                           "fttrump:ei_index" = "Trump rating x Elec. confidence",
+                           "period1:fttrump:ei_index" = "Post-election x Trump rating x Elec. conf.",
+                           "change_ei_conf" = "Change in elec. confidence",
+                           "fttrump:change_ei_conf" = "Trump rating x Change in elec. conf."), 
+             gof_omit = 'Cond.|Marg.|F|Log.')# %>%
+ # footnote(general = "* = p < .1, ** = p < .05, *** = p <.01",threeparttable = T) %>%
+  #kable_styling(latex_options =c("repeat_header"))
+```
+
+
+
+
+```{r anger-bv-mlm, warning=FALSE, message=FALSE, fig.cap="Anger, Trump vote, and election confidence (MLM)."}
+p_bv_ei_mlm + theme_bw() + scale_color_grey()
+```
+
+```{r anger-bv-ols, fig.cap="Anger, Biden vote, and change in elction confidence (OLS).", include=FALSE}
+p_biden_ei_ols + theme_bw() 
+```
+
+
+<!-- Finally, it may be that only the most marginal Biden voters feel increased anger when they believe the election was unfair. Figure \@ref(fig:ft-bv-ei) demonstrates that this is not the case. Biden voters with a fairly positive view of President Trump (rating him at 40 out of 100 on a thermometer scale) show no significant difference in anger than non-Biden voters with similar views at any level of confidence in election integrity. The same can be said of the (extremely rare) Biden voter with a very high rating of President Trump. Meanwhile, among strong Trump opponents, Biden voters appear significantly angrier than non-Biden voters when their views of US election integrity declined after the election. The overall pattern is not supportive of the cross-partisan coalition model, which would not predict that strongest Trump opponents would be angered by his 'fraudulent' loss more than moderate Trump opponents. Instead, it points toward a shortcoming in the observational aspect of this study: the target of respondents' anger is not defined in the survey.  For example, it could be that strong Trump opponents may have come to fear that US election are vulnerable to political pressure, in light of the Trump campaign's efforts to overturn the results; these efforts may have been the cause of their increased anger. -->
+  
+
+
+```{r ft-bv-ei, fig.cap="Three-way interaction of change in election confidence, Biden vote, and Trump rating (OLS).", include=FALSE}
+p_bv_ft_ei_ols + theme_bw()
+```
+
+
+
+
+
+# Discussion
+
+Prior work on election manipulation has held that manipulated elections reduce citizens' support for the incumbent. In turn, the risk of incurring such costs is understood to be one of the most important deterrents against government tampering with elections. This paper shows that both mechanisms are possible in the abstract, but that only the base-mobilization mechanism occurred in the aftermath of the real-world 2020 US election. Moreover, additional analysis of respondents interest in collective action in the survey-experiment (presented in more detail the appendix) suggests further evidence against coalition-building. Figure \@ref(fig:fig-ca-trump) shows reported interest in collective action by Trump support, controlling for anger. As the figure shows, Trump opponents\textemdash though they report substantial anger\textemdash do not report much interest in collective action in either the fraud or control conditions. How to interpret the difference between the broad evidence of anger found in the survey experiment, with the balance of evidence pointing toward a base-mobilization effect?
+
+```{r warning=FALSE, message=FALSE}
+mediation_model3 <- lm(ca.index ~ anger.index + vignette_falsify*trump_rating + ideology, data = survey.data %>% filter(vignette_laws == 0 & biden.winner == 1 & is.na(ca.index)==F))
+
+p.ca.trump <- sjPlot::plot_model(mediation_model3, type = "pred", terms = c("trump_rating [0, 9]", "vignette_falsify"), title = "Predicted values of collective action index", axis.title = c("Trump rating", "CA index"), legend.title = "Fraud treatment") + scale_color_grey() + scale_fill_grey(end = .5)
+```
+
+
+```{r fig-ca-trump, fig.cap="Trump support, election fraud, and collective action"}
+p.ca.trump + theme_bw()
+```
+
+The disparity suggests that in the United States, a country with a longstanding notional commitment to democratic values, respondents understand that election fraud is unacceptable and to be resisted. However, the external validity of the pre-election experiment is low. In the context of a real, high-stakes election with deep partisan polarization, partisan sorting and motivated reasoning take precedence. Indeed, partisans polarized on the very topic of election integrity, as Figure \@ref(fig:ei-partisan-bar) shows.  
+
+
+Figure \@ref(fig:ei-partisan-bar) shows there were no substantial differences in Americans' trust in elections during the pre-election wave of the survey. After the election, however, partisan sorting became intense, such that strong Democrats rated their trust in US elections at a 4.5 out of 5, and strong Republicans saw their trust in elections decline to roughly 2.8. This pattern suggests is indicative of the broader tendency of citizens to engage in motivated reasoning and to seek out confirmatory information about election manipulation [@Robertson2017], just as they do for other salient political issues [@Flynn2017;@Leeper2014].
+
+
+
+```{r ei-partisan-bar, fig.cap="Trust in elections by partisan affiliation (ANES survey)"}
+test1 <- anes_data %>% filter(period == 0)  
+
+test1 <- test1 %>% group_by(as.factor(pid7x)) %>% summarise(trust = mean(trustvote, na.rm = T))
+test1 <- test1 %>% mutate(period = 1)
+
+test2 <- anes_data %>% filter(period == 1)  
+
+test2 <- test2 %>% group_by(as.factor(pid7x)) %>% summarise(trust = mean(trustvote, na.rm = T))
+test2 <- test2 %>% mutate(period = 2)
+
+group_means_trust <- bind_rows(test1, test2)
+group_means_trust <- group_means_trust %>% rename(pid7x = `as.factor(pid7x)`)
+
+p.conf <- ggplot(group_means_trust %>% filter(pid7x != "4" & pid7x != "8" ), aes(x=period, y= trust, fill=pid7x)) + 
+   geom_bar(stat="identity", position=position_dodge()) + labs(title = "Average confidence in election integrity by partisanship and survey wave", fill = "Partisanship (L-R)") + xlab("Survey wave") + ylab("Confidence in elections")
+  
+p.conf +  scale_x_continuous(breaks = c(1, 2)) +
+ scale_fill_grey()  + theme_bw() #scale_fill_brewer(palette="Paired")
+```
+
+Further interpretation of the results hinges on the degree to which the American case is unique. In principle, there is no reason to exclude the US from the study of comparative politics, and there are several features of the 2020 election that link it to cases of contested elections around the world. However, there are also features of the US case that may limit the generalizability of this study, and which call for further research in different settings. 
+
+On the comparative side of the ledger, many researchers consider the United States to be undergoing a process of democratic backsliding. The US score on the V-Dem liberal democracy index has declined from 0.85 in 2015 to 0.73 in 2020 [@coppedge2021v], while a majority of experts interviewed in the Bright Line Watch project considered several events in the 2020 election---such as Trump's refusal to concede, his pressuring state officials to overturn the results, and pro-Trump rioters storming the US Capitol---to be 'grave threats' to democracy [@BrightLineWatch2021]. Claims of election manipulation were amplified by traditional and social media, and---factual or not---millions of Americans genuinely believe that the 2020 election was rigged[^6]. All of the above amounts to a kind of revenge of the 'perils of presidentialism'; that is, that the risks of authoritarian breakdown inherent in the presidential framework apply just as much to the United States as to its institutional imitators [@Linz1990]. 
+
+Additionally, the objection could be raised that the United States is a poor fit for the coalition-expansion model, which relies on a diverse but shared level of grievance among the population [@tucker2007]. If Americans have few grievances, the coalition-expansion mechanism should fail. While Americans' grievances may not be as profound as, say, Tunisians' on the eve of the Arab Spring, it is worth noting that 2020 was a period of enormous upheaval in American society. Lockdowns and pandemic restrictions proved divisive. Half of Americans believed their government had done a poor job addressing the covid-19 pandemic, substantially higher than the number in peer countries [@gramlichAmericansGiveLow2020]. Seventy percent rated economic conditions as 'bad' [@mordecaiManyCountriesPeople]. Protests following the murder of George Floyd further polarized the public on racial issues [@renyOpinionMobilizingEffectSocial2021]. This upheaval came amid a decades-long rise in wealth and income inequality [@saezWealthInequalityUnited2016], helping drive class-based dissatisfaction [@newmanFalseConsciousnessClass2015]. In other words, while the United States is a highly developed country, its citizens' potential grievances are many.  
+
+[^6]: A poll conducted by Fox News in December 2020 found that 36% of all voters, and 68% of Republicans, believe that the election was stolen from Donald Trump [@fox_poll2020].
+
+On the less comparative side, given that this study considers only one election, it is difficult to disentangle the effects of winning and losing from idiosyncrasies of the Democratic and Republican parties. The two parties are increasingly polarized, driven in large part by increasing elite-level drift to the right among Republicans [@Hacker2005]. At the mass level, citizens have become increasingly intolerant of supporters of the opposite party [@Iyengar2019]. Elite polarization, in turn, makes citizens more likely to follow partisan cues when forming political opinions, to the exclusion of new information [@Druckman2013]. There is some evidence to suggest that liberals/Democrats behave differently in this environment than conservatives/Republicans. Conservatives appear more likely to subscribe to a conspiratorial worldview, for example, including distrust of officials [@VanderLinden2021]. 
+
+These important differences not withstanding, Republicans and Democrats do not appear to differ in their propensity toward motivated reasoning about political events [Guay2020]; moreover, motivated reasoning and information gathering about election manipulation occurs both in democracies and non-democracies [@Robertson2017]. As such, it is likely that there is at least some symmetry in the ways in which partisans of the two groups react to winning and losing in a manipulated election. This is borne out in the experimental data when Donald Trump is presented as the winner, rather than Joe Biden (shown in the appendix). The results in that treatment arm are symmetrical to those presented here: strong Trump opponents report the most anger, especially in the fraud condition, but even strong Trump supporters report large and significant increases in anger when their candidate's win is attributed to fraud. As such, there is reason to believe that analogous results could be seen in other settings of partisan polarization, or with different winners and losers.
+
+One issue that cuts both ways is the fact that the 2020 election was not marked by systematic election manipulation, despite what many Americans since came to believe. On the one hand, the possibility of false accusations of election manipulation by the losing party has figured in the research of Magaloni [-@magaloni2010], Chernykh and Svolik [-@chernykh2015third], and others. Second, subjective perceptions of fraud have been shown to be more influential in shaping post-election protest than objective measures\textemdash even in places where no objective reports of fraud were made [@Daxecker2019b]. Third, there is a longstanding comparative literature on the relationship between losing an election and the likelihood of perceiving the result to be fraudulent [@Moehler2009;@ugues_public_2015;@sances_partisanship_2015]. On the other hand, though, false accusations of election rigging may heighten the post-election polarization seen in the ANES survey data, relative to cases where illegal election manipulation is more common. In the US case, motivated reasoning may lead Democratic supporters to prioritize (in this case, accurate) information about the integrity of US elections; it is possible that, in cases where elections are in fact compromised, it may be more difficult for winning-party voters to convince themselves of the election's legitimacy. If this were true, the coalition-expansion hypothesis might fare better in less polarized societies.
+
+There is some evidence to suggest that this is not the case, however. In the influential and highly studied case of authoritarian Russia, ruling-party supporters appear well-convinced of the integrity of elections. Following the 2021 legislative election, for example, polling by the independent Levada Center found that 84 percent of ruling-party voters believed that the election was fair, compared to only 23 percent of Communist Party voters [@levadaHowRussiansEvaluate2021]. Academic work echoes this result. Surveys conducted in Moscow in 2011\textemdash a period of sustained protest against real election fraud\textemdash found that ruling-party voters' high trust in government neither rose nor declined as mass protests raised the issue of election rigging [@Frye2019]. This suggests that voters' knowledge of election manipulation was already `priced in'\textemdash and apparently discounted\textemdash as part of their evaluations of the government. Likewise, Robertson [@Robertson2017] finds that pro-regime respondents who are aware of an independent election-monitoring organization in Russia are not more skeptical of election integrity in Russia, while pro-opposition voters who know of the organization are. A survey experiment in the same study finds that regime supporters who are informed about the election-monitoring organization and its critiques of the election are unmoved. All this is true in the context of a country that has exhibited low degrees of partisan and policy-based polarization for decades [@orhanPolarizationSupportUndemocratic]. Taken together, this suggests that the US case is not anomalous and can provide lessons for the broader comparative literature.
+
+In sum, it appears that legitimacy costs are primarily expressed through base mobilization. This result has important implications in several areas. If the cost of a manipulated election is largely paid by angering a party's die-hard opponents, the cost may be relatively bearable for governments and parties. Polarization, motivated reasoning, and---in non-democracies---media control give the winning party tools to wall off its supporters and political moderates, while protests by the opposition-minded can be dealt with more harshly [@Bhasin2013]. The same is also true for democratic backsliding; the cost of rigging an election in a democracy is also lower in the base-mobilization model, since one's own supporters can be counted on to defend their party's behavior against claims of manipulation. This is especially troubling given that a highly polarized country like the United States is precisely where the risk of democratic erosion is likely to be greatest [@svolikPolarizationDemocracy2019;@arbatliUnitedWeStand2021]. Consequently, these findings are pessimistic for democracy, and help explain the numerous instances of failed electoral revolutions in recent history. 
+
+<!-- They highlight the need to better understand how strategic and structural factors affect the translation from the latent coalition-building legitimacy costs observed in the experiment, to the purely mobilizational effect in the panel. The shift from latent to actual legitimacy costs among moderates and winning-party supporters likely hinges on factors like parties' messaging strategies, the existence of credible non-partisan monitors, and the distribution of resources and support within and across the parties. Moreover, the utility of anger as a mobilizing tool for parties may create a strong, and perverse, incentive for false allegations of fraud of the kind witnessed in the US election. All of these represent avenues for future research. -->
+
+
+
+# Conclusion
+
+The idea that manipulated elections impose a penalty on the legitimacy of the winning party is fundamental to theories of democratization, democratic backsliding, and the severity of manipulation itself. However, there are multiple conceptions of how such legitimacy costs might be felt, and little empirical work to adjudicate between them; this leaves theories of 'self-enforcing democracy' on somewhat shaky ground. Drawing on feelings of anger as a central component of legitimacy costs, this paper tests two possible versions: one in which fraudulent elections make the strongest supporters of the losing party even angrier, and one in which election manipulation makes it easier for moderates or even winning-party supporters to join the opposition in protest.
+
+This paper combines data from the 2020 panel ANES Social Media Survey with an original survey experiment. The experiment shows that fraudulent elections increase feelings of anger, especially among supporters of the `winning' candidate. This shows that, in the abstract at least, respondents in a politically polarized democracy show a willingness to defend democratic norms even when their preferred candidate is the beneficiary of fraud.  
+
+However, mediation analysis of the survey experiment along with data from the 2020 ANES panel data shows strong support for the base mobilization mechanism. The latter shows that distrust in the integrity of US election is associated with significantly higher levels of anger among Trump supporters, and that the size of this effect increased after the election. Trump supporters with low confidence in election integrity were significantly angrier than those supporters who were less convinced of election-rigging. That is, distrust in the election results intensifies the anger of losing, while confidence in election integrity mitigates it. At the same time, Biden voters and those with a low opinion of President Trump showed no significant change in their reported levels of anger as their confidence in election integrity declines. In other words, sharing a belief in rigged elections with Trump supporters did not incline Trump opponents to feel angrier about the state of the country. 
+
+
+Comparing the ANES and experimental results generates cause for concern about the health of democracy in the United States and other politically polarized societies facing allegations of election manipulation. If legitimacy costs are mostly confined to the losing side's base, they are less likely to deter election manipulation (and uphold electoral democracy as a result). At the same time, there is some modest cause for optimism that additional research may show broad coalitions are more likely to form in less divided polities. The results of the survey experiment show that anger increases significantly even among supporters of the winning candidate. This suggests that, at least in a country like the United States where there is longstanding commitment to the ideal of democratic government, the *potential* legitimacy cost for tampering with an election is quite high. On the other hand, even in such a country, there are clear benefits to making false allegations of fraud to anger and mobilize one's own supporters. In addition, there is little evidence of cross-over support for President Trump's claims of fraud among Democrats and Trump opponents. Future work in less democratic settings could investigate these relationships further.
+
+
+# References
+
+<div id="refs"></div>
+
+
+
+
+
+
+
+
+

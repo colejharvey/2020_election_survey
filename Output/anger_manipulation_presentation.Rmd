@@ -1,0 +1,237 @@
+---
+title: "Legitimacy costs in a 'rigged' election: Observational and survey-experimental evidence from the 2020 US election"
+author: "Cole J. Harvey"
+date: "10/1/2021"
+output: beamer_presentation
+bibliography: C:/Users/colej/Documents/Research projects/2020_election_survey/bib_ch.bib
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(lme4)
+library(kableExtra)
+library(modelsummary)
+library(interactions)
+
+
+anes_data <- read.csv(here::here("Data", "anes_modified_long.csv"))
+
+survey.data <- read.csv(here::here("Data", "survey data.csv"))
+survey.data <- survey.data %>% mutate(biden.winner = ifelse(vignette_winning_candidate == "biden", 1, 0))
+survey.data <- survey.data %>% mutate(anger.index = (anger + outrage)/2)
+
+
+```
+
+## Motivation
+- Common assumption in studies of election manipulation: manipulation leads to a loss of support for the regime or system
+  - Legitimacy costs [@birch2011]
+  - Connected to the assumption that protest risk is major deterrent to manipulation  [@magaloni2010;@Little2012;@Fearon2011;@Hyde2014a].
+- Important to our theories of manipulation, and thus to democratization and authoritarianism
+
+## Motivation
+- But:
+  - Usually an *assumption*
+  - Mechanism is unclear
+    - Intensify anger among losers?
+    - Broaden the opposition coalition?
+    
+## Approach
+- Conceptualize legitimacy costs as feelings of anger
+- 2020 election known in advance to face allegations of manipulation
+  - Survey experiment presenting possible outcomes
+  - ANES panel survey
+  
+## Findings
+- Survey experiment shows both mechanisms are plausible
+- ANES panel shows that, in this context, base mobilization is the main channel
+
+## Overview of literature: election manipulation
+- Election manipulation has lots of benefits [@Simpser2011]
+- What holds ruling parties back? Legitimacy loss [@magaloni2010;@Little2015;@Chernykh2015]
+  - Part of the story in analysis of mass electoral protest [@tucker2007]
+  - However, electoral protest is relatively rare [@kalandadze2009electoral]
+- Birch [-@birch2011]: "...the proportion of the population that can be expected to acquiesce to having their contribution to public choice taken from them or distorted..."
+- Norris et al [-@Norris2015: Loss of trust
+
+## Theory
+- Social psychologists' theories of legitimacy rest on procedural justice [@Tyler2006]
+  - individuals' beliefs that officials act following rules in an even-handed, predictable way 
+- Survey research finds positive relationship between perceptions of procedural justice and legitimacy judgments, and with compliance with the law [@Levi2009;@Tyler2002;@Sunshine2003;@Reisig2014;@Hartner2008]
+
+## Theory
+- Violations of procedural justice increase feelings of anger [@Weiss1999;@Krehbiel2000;@Murphy2008;@Murphy-Berman1999].
+  - Even if unfairness experienced vicariously [@Gordijn2006]
+  - Effect can be contagious:  witnessing others' anger can negatively influence one's own estimation of the justice [@Hillebrandt2017].
+- Finally, anger contributes to increases in political engagement and protest [@van_zomeren_put_2004;@VanStekelenburg2013a;@Jasper2014].
+
+## Theory: base mobilization
+- Anger after a flawed election mediated by partisanship and status as an electoral winner or loser [@Valentino2017;@Valentino2009]
+
+## Theory: Coalition growth
+
+- Research on the color revolutions and beyond suggests the opposition unity before and after the election is central to the success of post-election protests [@Bunce2006a;@Bunce2006;@Vladisavljevic2016]. 
+- Tucker [-@tucker2007] argues that election manipulation serves as a focal point for citizens' grievances *generally*, not only the specific grievance of having one's preferred candidate defeated. (See also [-@Brancati2014a])
+- Russia 2011: support for the protest movement did not vary significantly across the left-right economic dimension, or among nationalists and non-nationlists [@Chaisty2013].
+
+## Hypotheses 
+
+> Hypothesis 0: Allegations of election manipulation will lead to greater interest in collective action, mediated by feelings of anger, compared to a clean election.
+> Hypothesis 1 (Base mobilization): Among those who believe an election was unfair, stronger support for the losing candidate will be associated with stronger feelings of anger.
+
+> Hypothesis 2 (Base mobilization): Among those who are supporters of the losing candidate, increasing belief in election manipulation will be associated with stronger feelings of anger.
+
+## Hypotheses
+
+> Hypothesis 3 (Cross-partisan coalition): Among supporters of the winning candidate, increasing belief in election manipulation will be associated with stronger feelings of anger.
+
+> Hypothesis 4 (Cross-partisan coalition): Among supporters of the winning candidate who believe the election was unfair, more positive ratings of the losing candidate will be associated with greater anger.
+
+## Research design: Survey experiment
+
+- Conducted in mid-October 2020
+- 1049 respondents recruited via the research platform Prolific
+- 2 x 2 vignette experiment:
+  - Either Donald Trump or Joe Biden would be elected
+  - Victory ascribed to falsification of the results by government officials, or without attribution
+  
+## Research design: ANES panel
+- Two-wave panel survey (pre- and post-election) conducted by NORC, US citizens age 18 and older. 
+  - 5,227 respondents
+- How respondents' self-reported emotions and attitudes toward election integrity changed over time. 
+
+```{r experiment-anger-model}
+
+model.anger.falsify <- lm(anger.index ~ trump_rating*vignette_falsify  + ideology, data = survey.data %>% filter(vignette_laws == 0 & biden.winner == 1))
+#summary(model.anger.falsify)
+
+p_exp_anger <- sjPlot::plot_model(model.anger.falsify, type = "pred", terms = c("trump_rating [0, 9]", "vignette_falsify"), title = "Predicted values of anger index", axis.title = c("Trump rating", "Anger index"),
+                                  legend.title = "Fraud treatment")
+
+```
+
+```{r experiment-anger-model2}
+
+model.anger.falsify <- lm(anger.index ~ trump_rating*vignette_falsify  + ideology, data = survey.data %>% filter(vignette_laws == 0 & biden.winner == 0))
+#summary(model.anger.falsify)
+
+p_exp_anger2 <- sjPlot::plot_model(model.anger.falsify, type = "pred", terms = c("trump_rating [0, 9]", "vignette_falsify"), title = "Predicted values of anger index", axis.title = c("Trump rating", "Anger index"),
+                                  legend.title = "Fraud treatment")
+
+```
+
+## Results: Survey experiment
+
+```{r, echo = FALSE, fig.cap="Biden winner condition", out.width="80%"}
+p_exp_anger + theme_bw()
+```
+
+## Results: Survey experiment
+
+```{r, echo = FALSE, fig.cap="Trump winner condition", out.width="80%"}
+p_exp_anger2 + theme_bw()
+```
+
+
+```{r anger_models_trump}
+anes_data <- anes_data %>% mutate(period = factor(period))
+
+model_ft_ei_mlm <- lmer(anger_index ~ period*fttrump*ei_index  + biden_voter +  pid7x +
+                     factor(profile_gender) + factor(profile_racethnicity) + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin + (1 | caseid)
+                    , data = anes_data)
+
+  #summary(model_mlm)
+p_ft_ei_mlm <- sjPlot::plot_model(model_ft_ei_mlm, type = "pred", terms = c("period", "ei_index [1, 3, 5]", "fttrump [0, 40, 100]"), title = "Predicted values of anger index", axis.title = c("Post-election period", "Anger index"),
+                                  legend.title = "Elec. confidence")
+
+
+model_ft_ei_ols <- lm(change_anger_index ~ change_ei_conf*fttrump  +  pid7x + biden_voter +
+                     factor(profile_gender) + factor(profile_racethnicity) + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin
+                    , data = anes_data %>% filter(period == 1))
+  #summary(model_fttrump)
+p_ft_ei_ols <- sjPlot::plot_model(model_ft_ei_ols, type = "pred", terms = c("change_ei_conf", "fttrump [0, 100]"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Change in elec. confidence", "Change in anger index"), legend.title = "Trump rating")
+
+
+```
+
+```{r anger_models_biden}
+model_biden_ei_mlm <- lmer(anger_index ~ period*biden_voter*ei_index  + fttrump +  pid7x +
+                     factor(profile_gender) + factor(profile_racethnicity) + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin + (1 | caseid)
+                    , data = anes_data)
+
+  #summary(model_mlm)
+p_bv_ei_mlm <- sjPlot::plot_model(model_biden_ei_mlm, type = "pred", terms = c("period", "ei_index [1, 3, 5]", "biden_voter"), title = "Predicted values of anger index", axis.title = c("Post-election period", "Anger index"),
+                                  legend.title = "Elec. confidence")
+
+
+model_biden_ei_ols <- lm(change_anger_index ~ change_ei_conf*biden_voter  +  pid7x + fttrump +
+                     factor(profile_gender) + factor(profile_racethnicity) + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin
+                    , data = anes_data %>% filter(period == 1))
+  #summary(model_fttrump)
+p_biden_ei_ols <- sjPlot::plot_model(model_ft_ei_ols, type = "pred", terms = c("change_ei_conf", "biden_voter"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Change in elec. confidence", "Change in anger index"), legend.title = "Biden voter")
+
+```
+
+```{r anger_model_3way}
+
+model_biden_ei_ft_ols <- lm(change_anger_index ~ change_ei_conf*biden_voter*fttrump  +  pid7x  +
+                     factor(profile_gender) + factor(profile_racethnicity) + 
+                     profile_educ5 +
+                     profile_income + profile_newskeepup + covid_fin + covid_worry + persfin
+                    , data = anes_data %>% filter(period == 1))
+  #summary(model_fttrump)
+p_bv_ft_ei_ols <- sjPlot::plot_model(model_biden_ei_ft_ols, type = "pred", terms = c("change_ei_conf", "biden_voter", "fttrump [0, 40, 80]"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Change in elec. confidence", "Change in anger index"), legend.title = "Biden voter")
+
+p_bv_ft_ei_ols2 <- sjPlot::plot_model(model_biden_ei_ft_ols, type = "pred", terms = c("fttrump", "biden_voter", "change_ei_conf [-2, 0, 2]"), ci.lvl = .95, title = "Predicted change in anger index", axis.title = c("Trump thermometer", "Change in anger index"), legend.title = "Biden voter")
+
+```
+
+## Results: Panel survey
+
+```{r anger-fttrump-mlm, fig.cap="Anger, Trump feeling thermometer rating, and elction confidence (MLM)", out.width="85%"}
+p_ft_ei_mlm + theme_bw()
+```
+
+## Results: Panel survey
+
+
+```{r ft-bv-ei, fig.cap="Three-way interaction of change in election confidence, Biden vote, and Trump rating (OLS).", out.width="85%"}
+p_bv_ft_ei_ols2 + theme_bw()
+```
+
+## Discussion and conclusion
+
+- Appears that legitimacy costs  primarily expressed through base mobilization (at least in polarized polities) 
+- If the cost of a manipulated election is largely paid by angering a party's die-hard opponents, the cost may be relatively bearable for governments
+  - Targeted repression + motivated reasoning and media control
+ 
+- Democratic backsliding: the cost of rigging an election in a democracy is also lower in the base-mobilization model
+
+## Discussion and conclusion
+
+- These findings are pessimistic for democracy
+- Help explain the numerous instances of failed electoral revolutions in recent history. 
+- Base mobilization, anger, make false allegations appealing
+- More research needed:
+ - What conditions create legitimacy costs among moderates and winning-party supporters?
+  - Parties' messaging strategies, the existence of credible non-partisan monitors, coalitional nature of parties?
+  
+## Thanks!
+
+- Contact info:
+ - cole.j.harvey@okstate.edu
+ - www.colejharvey.com
+
+## References {.allowframebreaks}
